@@ -128,10 +128,10 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
     ax.plot(day_ahead_data.index, day_ahead_data['Day-Ahead_Price_EUR_per_MWh'], color='blue', label='Day-Ahead E-boiler Price', linewidth=0.5, alpha=0.7)
     
     # Plot imbalance prices
-    ax.plot(imbalance_data.index, imbalance_data['Imbalance_Price_EUR_per_MWh'], color='yellow', label='Imbalance E-boiler Price', linewidth=0.5, alpha=0.7)
+    ax.plot(imbalance_data.index, imbalance_data['Imbalance_Price_EUR_per_MWh'], color='red', label='Imbalance E-boiler Price', linewidth=0.5, alpha=0.7)
 
     # Plot gas price as a constant line
-    ax.axhline(y=gas_price * 1000, color='red', linestyle='--', label='Gas Price (EUR/MWh)', linewidth=1)
+    ax.axhline(y=gas_price * 1000, color='green', linestyle='--', label='Gas Price (EUR/MWh)', linewidth=1)
 
     ax.set_title('Boiler Price Efficiency Over Time')
     ax.set_xlabel('Time')
