@@ -113,8 +113,7 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
 
 
-# Function to plot prices for day-ahead and imbalance data
-def plot_price(day_ahead_data, imbalance_data):
+def plot_price(day_ahead_data, imbalance_data, gas_price):
     fig, ax = plt.subplots(figsize=(12, 6)) 
 
     # Convert time to datetime and set as index
@@ -129,6 +128,9 @@ def plot_price(day_ahead_data, imbalance_data):
     
     # Plot imbalance prices
     ax.plot(imbalance_data.index, imbalance_data['Imbalance_Price_EUR_per_MWh'], color='green', label='Imbalance E-boiler Price', linewidth=0.5, alpha=0.7)
+
+    # Plot gas price as a constant line
+    ax.axhline(y=gas_price * 1000, color='red', linestyle='--', label='Gas Price (EUR/MWh)', linewidth=1)
 
     ax.set_title('Boiler Price Efficiency Over Time')
     ax.set_xlabel('Time')
@@ -230,6 +232,13 @@ def main():
             st.write(f'E-boiler Cost (Imbalance): {e_boiler_cost_imbalance:.2f} EUR')
             st.write(f'Gas-boiler Cost (Imbalance): {gas_boiler_cost_imbalance:.2f} EUR')
             st.write(f'Total Cost (Imbalance): {total_cost_imbalance:.2f} EUR')
+
+            # Display the data tables
+            st.write('### Day-Ahead Data Table:')
+            st.dataframe(day_ahead_data)
+
+            st.write('### Imbalance Data Table:')
+            st.dataframe(imbalance_data)
             
             # Displaying the plots
             price_fig = plot_price(day_ahead_data, imbalance_data)
