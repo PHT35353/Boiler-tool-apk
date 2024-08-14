@@ -92,7 +92,7 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     total_gas_boiler_power_mwh = data['Gas-boiler_Power_Day_Ahead'].sum() / 1000
     
     e_boiler_cost = total_e_boiler_power_mwh * data[data['Efficient_Boiler_Day_Ahead'] == 'E-boiler']['Day-Ahead_Price_EUR_per_MWh'].mean()
-    gas_boiler_cost = total_gas_boiler_power_mwh * gas_price * 1000
+    gas_boiler_cost = total_gas_boiler_power_mwh *  gas_price * 1000
     
     total_savings = abs(e_boiler_cost)
     percentage_savings = (total_savings / gas_boiler_cost) * 100 if gas_boiler_cost else 0
@@ -113,8 +113,8 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
 
 
-# Function to plot prices for day-ahead and imbalance data
-def plot_price(day_ahead_data, imbalance_data):
+
+def plot_price(day_ahead_data, imbalance_data, gas_price):
     fig, ax = plt.subplots(figsize=(12, 6)) 
 
     # Convert time to datetime and set as index
@@ -125,10 +125,13 @@ def plot_price(day_ahead_data, imbalance_data):
     imbalance_data.set_index('Time', inplace=True)
     
     # Plot day-ahead prices
-    ax.plot(day_ahead_data.index, day_ahead_data['Day-Ahead_Price_EUR_per_MWh'], color='blue', label='Day-Ahead E-boiler Price', linewidth=0.5, alpha=0.7)
+    ax.plot(day_ahead_data.index, day_ahead_data['Day-Ahead_Price_EUR_per_MWh'], color='red', label='Day-Ahead E-boiler Price', linewidth=0.5, alpha=0.7)
     
     # Plot imbalance prices
-    ax.plot(imbalance_data.index, imbalance_data['Imbalance_Price_EUR_per_MWh'], color='green', label='Imbalance E-boiler Price', linewidth=0.5, alpha=0.7)
+    ax.plot(imbalance_data.index, imbalance_data['Imbalance_Price_EUR_per_MWh'], color='blue', label='Imbalance E-boiler Price', linewidth=0.5, alpha=0.7)
+
+    # Plot gas price as a constant line
+    ax.axhline(y=gas_price * 1000, color='green', linestyle='--', label='Gas Price (EUR/MWh)', linewidth=1)
 
     ax.set_title('Boiler Price Efficiency Over Time')
     ax.set_xlabel('Time')
@@ -191,7 +194,7 @@ def main():
     start_date = st.sidebar.date_input('Start date', pd.to_datetime('2023-01-01'))
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
     country_code = st.sidebar.text_input('Country code', 'NL')
-    gas_price = st.sidebar.number_input('Gas price per kWh', value=0.30)
+    gas_price = st.sidebar.number_input('Gas price per kWh', value= 0.30/9.796)
     desired_power = st.sidebar.number_input('Desired Power (kW)', min_value=0.0, value=100.0, step=1.0)
     
     if st.sidebar.button('Get Data'):
@@ -230,9 +233,16 @@ def main():
             st.write(f'E-boiler Cost (Imbalance): {e_boiler_cost_imbalance:.2f} EUR')
             st.write(f'Gas-boiler Cost (Imbalance): {gas_boiler_cost_imbalance:.2f} EUR')
             st.write(f'Total Cost (Imbalance): {total_cost_imbalance:.2f} EUR')
+
+            # Display the data tables
+            st.write('### Day-Ahead Data Table:')
+            st.dataframe(day_ahead_data)
+
+            st.write('### Imbalance Data Table:')
+            st.dataframe(imbalance_data)
             
             # Displaying the plots
-            price_fig = plot_price(day_ahead_data, imbalance_data)
+            price_fig = plot_price(day_ahead_data, imbalance_data, gas_price)
             if price_fig:
                 st.pyplot(price_fig)
             
