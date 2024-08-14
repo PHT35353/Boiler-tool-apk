@@ -97,14 +97,15 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     
     total_savings = abs(e_boiler_cost)
     percentage_savings = (total_savings / gas_boiler_cost) * Decimal(100) if gas_boiler_cost else Decimal(0)
-
-  
+    
+    # Define the total_cost_day_ahead variable correctly here
+    total_cost_day_ahead = gas_boiler_cost - abs(e_boiler_cost)
     
     print(f"Total Savings: {total_savings}")
     print(f"Percentage Savings: {percentage_savings}")
     print(f"Total Cost Day-Ahead: {total_cost_day_ahead}")
     
-    return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
+    return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, total_cost_day_ahead
 
 def calculate_savings_imbalance(data, gas_price, desired_power):
     total_e_boiler_power_mwh = Decimal(data['E-boiler_Power_Imbalance'].sum()) / Decimal(1000)
@@ -222,17 +223,8 @@ def main():
             imbalance_data = calculate_power_imbalance(imbalance_data, desired_power)
             
             # Calculating savings for both day-ahead and imbalance data
-            total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
-            total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
-            
-            total_cost_day_ahead = gas_boiler_cost_day_ahead - abs(e_boiler_cost_day_ahead)
-            total_cost_imbalance = gas_boiler_cost_imbalance - abs(e_boiler_cost_imbalance)
-
-            print("Day-Ahead Data:")
-            print(day_ahead_data.head())
-        
-            print("Imbalance Data:")
-            print(imbalance_data.head())
+            total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, total_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
+            total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, total_cost_imbalance = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
             
             # Displaying the results in Streamlit
             st.write('### Day-Ahead Data Results:')
