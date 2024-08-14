@@ -113,6 +113,7 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
 
 
+
 def plot_price(day_ahead_data, imbalance_data, gas_price):
     fig, ax = plt.subplots(figsize=(12, 6)) 
 
@@ -241,7 +242,7 @@ def main():
             st.dataframe(imbalance_data)
             
             # Displaying the plots
-            price_fig = plot_price(day_ahead_data, imbalance_data)
+            price_fig = plot_price(day_ahead_data, imbalance_data, gas_price)
             if price_fig:
                 st.pyplot(price_fig)
             
