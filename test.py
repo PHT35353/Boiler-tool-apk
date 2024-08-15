@@ -89,27 +89,22 @@ def calculate_power_imbalance(data, desired_power):
     return data
 
 def calculate_savings_day_ahead(data, gas_price, desired_power):
-    # Calculate total gas boiler power used in MWh
+    # Ensure precise calculation of gas boiler power in MWh
     total_gas_boiler_power_mwh = Decimal(data['Gas-boiler_Power_Day_Ahead'].sum()) / Decimal(1000)
     
-    # Calculate the gas boiler cost
+    # Calculate the gas boiler cost precisely
     gas_boiler_cost = total_gas_boiler_power_mwh * Decimal(gas_price) * Decimal(1000)
-    
-    # Debugging outputs to verify the correctness of calculations
-    print(f"Total Gas Boiler Power (MWh): {total_gas_boiler_power_mwh}")
-    print(f"Gas Price (EUR/MWh): {Decimal(gas_price) * Decimal(1000)}")
-    print(f"Calculated Gas-Boiler Cost: {gas_boiler_cost}")
-    
-    # Verify each entry
-    print(f"Gas-boiler_Power_Day_Ahead column:\n{data['Gas-boiler_Power_Day_Ahead']}")
-    
-    # Summing each cost component explicitly
-    individual_costs = data['Gas-boiler_Power_Day_Ahead'] / Decimal(1000) * Decimal(gas_price) * Decimal(1000)
-    print(f"Individual Costs (EUR): {individual_costs}")
-    print(f"Sum of Individual Costs: {individual_costs.sum()}")
 
-    # Return only gas boiler related results for now
-    return None, None, None, gas_boiler_cost
+    # Calculate the e-boiler cost using the same precision approach
+    total_e_boiler_power_mwh = Decimal(data['E-boiler_Power_Day_Ahead'].sum()) / Decimal(1000)
+    e_boiler_cost = total_e_boiler_power_mwh * Decimal(data[data['Efficient_Boiler_Day_Ahead'] == 'E-boiler']['Day-Ahead_Price_EUR_per_MWh'].mean())
+    
+    # Calculate savings
+    total_savings = abs(e_boiler_cost)
+    percentage_savings = (total_savings / gas_boiler_cost * Decimal(100)) if gas_boiler_cost else Decimal(0)
+    
+    # Return the calculated savings, percentages, and costs
+    return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
 
 # Function to calculate savings for imbalance data
 def calculate_savings_imbalance(data, gas_price, desired_power):
