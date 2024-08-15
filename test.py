@@ -78,14 +78,14 @@ def calculate_costs_imbalance(data, gas_price):
 
 # Function to calculate power usage for day-ahead data
 def calculate_power_day_ahead(data, desired_power):
-    data['E-boiler_Power_Day_Ahead'] = data.apply(lambda x: desired_power if x['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else Decimal(0), axis=1)
-    data['Gas-boiler_Power_Day_Ahead'] = data.apply(lambda x: desired_power if x['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else Decimal(0), axis=1)
+    data['E-boiler_Power_Day_Ahead'] = data.apply(lambda x: Decimal(desired_power) if x['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else Decimal(0), axis=1)
+    data['Gas-boiler_Power_Day_Ahead'] = data.apply(lambda x: Decimal(desired_power) if x['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else Decimal(0), axis=1)
     return data
 
 # Function to calculate power usage for imbalance data
 def calculate_power_imbalance(data, desired_power):
-    data['E-boiler_Power_Imbalance'] = data.apply(lambda x: desired_power if x['Efficient_Boiler_Imbalance'] == 'E-boiler' else Decimal(0), axis=1)
-    data['Gas-boiler_Power_Imbalance'] = data.apply(lambda x: desired_power if x['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else Decimal(0), axis=1)
+    data['E-boiler_Power_Imbalance'] = data.apply(lambda x: Decimal(desired_power) if x['Efficient_Boiler_Imbalance'] == 'E-boiler' else Decimal(0), axis=1)
+    data['Gas-boiler_Power_Imbalance'] = data.apply(lambda x: Decimal(desired_power) if x['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else Decimal(0), axis=1)
     return data
 
 # Function to calculate savings for day-ahead data
@@ -219,8 +219,8 @@ def main():
             total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
             total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
             
-            total_cost_day_ahead = gas_boiler_cost_day_ahead - abs(e_boiler_cost_day_ahead)
-            total_cost_imbalance = gas_boiler_cost_imbalance - abs(e_boiler_cost_imbalance)
+            total_cost_day_ahead = Decimal(gas_boiler_cost_day_ahead) - Decimal(abs(e_boiler_cost_day_ahead))
+            total_cost_imbalance = Decimal(gas_boiler_cost_imbalance) - Decimal(abs(e_boiler_cost_imbalance))
             
             # Displaying the results in Streamlit
             st.write('### Day-Ahead Data Results:')
