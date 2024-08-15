@@ -91,24 +91,24 @@ def calculate_power_imbalance(data, desired_power):
 # Function to calculate savings for day-ahead data
 def calculate_savings_day_ahead(data, gas_price, desired_power):
     # Convert everything to Decimal early on
-    gas_price_mwh = Decimal(gas_price) * Decimal(1000)
-    desired_power_mwh = Decimal(desired_power) / Decimal(1000)  # Convert kW to MWh
+    gas_price_mwh = (gas_price) * (1000)
+    desired_power_mwh = (desired_power) / (1000)  # Convert kW to MWh
     
     # Calculate the cost for each time point directly
     data['Gas_Boiler_Cost'] = data.apply(lambda row: desired_power_mwh * gas_price_mwh 
-                                         if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else Decimal(0), axis=1)
+                                         if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else (0), axis=1)
     
     # Sum the costs to get the total gas boiler cost
     gas_boiler_cost = data['Gas_Boiler_Cost'].sum()
     
     # Calculate the e-boiler cost similarly
-    data['E_Boiler_Cost'] = data.apply(lambda row: desired_power_mwh * Decimal(row['Day-Ahead_Price_EUR_per_MWh']) 
-                                       if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else Decimal(0), axis=1)
+    data['E_Boiler_Cost'] = data.apply(lambda row: desired_power_mwh * (row['Day-Ahead_Price_EUR_per_MWh']) 
+                                       if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else (0), axis=1)
     e_boiler_cost = data['E_Boiler_Cost'].sum()
     
     # Calculate savings
     total_savings = abs(e_boiler_cost)
-    percentage_savings = (total_savings / gas_boiler_cost * Decimal(100)) if gas_boiler_cost else Decimal(0)
+    percentage_savings = (total_savings / gas_boiler_cost * (100)) if gas_boiler_cost else (0)
     
     # Return the calculated savings, percentages, and costs
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
@@ -116,24 +116,24 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
 # Function to calculate savings for imbalance data
 def calculate_savings_imbalance(data, gas_price, desired_power):
     # Convert everything to Decimal early on
-    gas_price_mwh = Decimal(gas_price) * Decimal(1000)
-    desired_power_mwh = Decimal(desired_power) / Decimal(1000)  # Convert kW to MWh
+    gas_price_mwh = (gas_price) * (1000)
+    desired_power_mwh = (desired_power) / (1000)  # Convert kW to MWh
     
     # Calculate the cost for each time point directly
     data['Gas_Boiler_Cost_Imbalance'] = data.apply(lambda row: desired_power_mwh * gas_price_mwh 
-                                                   if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else Decimal(0), axis=1)
+                                                   if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else (0), axis=1)
     
     # Sum the costs to get the total gas boiler cost
     gas_boiler_cost = data['Gas_Boiler_Cost_Imbalance'].sum()
     
     # Calculate the e-boiler cost similarly
-    data['E_Boiler_Cost_Imbalance'] = data.apply(lambda row: desired_power_mwh * Decimal(row['Imbalance_Price_EUR_per_MWh']) 
-                                                 if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else Decimal(0), axis=1)
+    data['E_Boiler_Cost_Imbalance'] = data.apply(lambda row: desired_power_mwh * (row['Imbalance_Price_EUR_per_MWh']) 
+                                                 if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else (0), axis=1)
     e_boiler_cost = data['E_Boiler_Cost_Imbalance'].sum()
     
     # Calculate savings
     total_savings = abs(e_boiler_cost)
-    percentage_savings = (total_savings / gas_boiler_cost * Decimal(100)) if gas_boiler_cost else Decimal(0)
+    percentage_savings = (total_savings / gas_boiler_cost * (100)) if gas_boiler_cost else (0)
     
     # Return the calculated savings, percentages, and costs
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
