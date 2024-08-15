@@ -2,8 +2,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
 import matplotlib.dates as mdates 
-
 from entsoe import EntsoePandasClient
+from decimal import Decimal
+from scipy.signal import find_peaks
+
 # required own api token from entsoe
 API_TOKEN = '0464a296-1b5d-4be6-a037-b3414de630f8'
 client = EntsoePandasClient(api_key=API_TOKEN)
@@ -157,8 +159,6 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
 
 
 # this function is for plotting the power graph
-from scipy.signal import find_peaks
-
 def plot_power(day_ahead_data, imbalance_data):
     fig, ax = plt.subplots(figsize=(14, 8))  
 
