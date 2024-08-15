@@ -89,10 +89,10 @@ def calculate_power_imbalance(data, desired_power):
     return data
 
 def calculate_savings_day_ahead(data, gas_price, desired_power):
-    # Ensure power calculations are precise
+    # Calculate total gas boiler power used in MWh
     total_gas_boiler_power_mwh = Decimal(data['Gas-boiler_Power_Day_Ahead'].sum()) / Decimal(1000)
     
-    # Calculate the cost
+    # Calculate the gas boiler cost
     gas_boiler_cost = total_gas_boiler_power_mwh * Decimal(gas_price) * Decimal(1000)
     
     # Debugging outputs to verify the correctness of calculations
@@ -108,11 +108,8 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     print(f"Individual Costs (EUR): {individual_costs}")
     print(f"Sum of Individual Costs: {individual_costs.sum()}")
 
-    # Calculate savings and percentage
-    total_savings = abs(e_boiler_cost)
-    percentage_savings = (total_savings / gas_boiler_cost * Decimal(100)) if gas_boiler_cost else Decimal(0)
-    
-    return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
+    # Return only gas boiler related results for now
+    return None, None, None, gas_boiler_cost
 
 # Function to calculate savings for imbalance data
 def calculate_savings_imbalance(data, gas_price, desired_power):
