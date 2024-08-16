@@ -246,7 +246,7 @@ def main():
     start_date = st.sidebar.date_input('Start date', pd.to_datetime('2023-01-01'))
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
     country_code = st.sidebar.text_input('Country code', 'NL')
-    gas_price = st.sidebar.number_input('Gas price per kWh', value= 0.30/9.796)
+    gas_price = st.sidebar.number_input('Gas price per kWh', value=0.30 / 9.796)
     desired_power = st.sidebar.number_input('Desired Power (kW)', min_value=0.0, value=100.0, step=1.0)
     
     if st.sidebar.button('Get Data'):
@@ -293,14 +293,17 @@ def main():
             st.write('### Imbalance Data Table:')
             st.dataframe(imbalance_data)
             
-            # Displaying the plots
-            price_fig = plot_price(day_ahead_data, imbalance_data, gas_price)
-            if price_fig:
-                st.pyplot(price_fig)
+            # Display the price plots
+            fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data, gas_price)
+            st.write('### Price Comparison:')
+            st.pyplot(fig_day_ahead_price)
+            st.pyplot(fig_imbalance_price)
             
-            power_fig = plot_power(day_ahead_data, imbalance_data)
-            if power_fig:
-                st.pyplot(power_fig)
+            # Display the power plots
+            fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data)
+            st.write('### Power Usage Peaks and Zeros:')
+            st.pyplot(fig_day_ahead_power)
+            st.pyplot(fig_imbalance_power)
 
 if __name__ == '__main__':
     main()
