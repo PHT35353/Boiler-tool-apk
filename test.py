@@ -68,12 +68,12 @@ def efficient_boiler_imbalance(imbalance_price, gas_price):
 
 # Function to calculate costs for day-ahead data
 def calculate_costs_day_ahead(data, gas_price):
-    data['Efficient_Boiler_Day_Ahead'] = data['Day-Ahead_Price_EUR_per_MWh'].apply(efficient_boiler_day_ahead, Decimal(gas_price)=gas_price)
+    data['Efficient_Boiler_Day_Ahead'] = data['Day-Ahead_Price_EUR_per_MWh'].apply(efficient_boiler_day_ahead, gas_price=gas_price)
     return data
 
 # Function to calculate costs for imbalance data
 def calculate_costs_imbalance(data, gas_price):
-    data['Efficient_Boiler_Imbalance'] = data['Imbalance_Price_EUR_per_MWh'].apply(efficient_boiler_imbalance, Decimal(gas_price)=gas_price)
+    data['Efficient_Boiler_Imbalance'] = data['Imbalance_Price_EUR_per_MWh'].apply(efficient_boiler_imbalance, gas_price=gas_price)
     return data
 
 # Function to calculate power usage for day-ahead data
