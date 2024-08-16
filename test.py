@@ -188,40 +188,34 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
 
 
 def plot_power(day_ahead_data, imbalance_data):
-    # Calculate the sum of peaks for day-ahead data
-    e_boiler_peaks_day_ahead, _ = find_peaks(day_ahead_data['E-boiler_Power_Day_Ahead'], distance=5, prominence=1)
-    gas_boiler_peaks_day_ahead, _ = find_peaks(day_ahead_data['Gas-boiler_Power_Day_Ahead'], distance=5, prominence=1)
-    
-    sum_e_boiler_peaks_day_ahead = day_ahead_data['E-boiler_Power_Day_Ahead'].iloc[e_boiler_peaks_day_ahead].sum()
-    sum_gas_boiler_peaks_day_ahead = day_ahead_data['Gas-boiler_Power_Day_Ahead'].iloc[gas_boiler_peaks_day_ahead].sum()
+    # Calculate the sum of power for day-ahead data
+    sum_e_boiler_day_ahead = day_ahead_data['E-boiler_Power_Day_Ahead'].sum()
+    sum_gas_boiler_day_ahead = day_ahead_data['Gas-boiler_Power_Day_Ahead'].sum()
     
     # Create horizontal bar chart for day-ahead data
     fig_day_ahead, ax_day_ahead = plt.subplots(figsize=(8, 4))
-    ax_day_ahead.barh(['E-boiler Peaks (Day-Ahead)', 'Gas-boiler Peaks (Day-Ahead)'],
-                      [sum_e_boiler_peaks_day_ahead, sum_gas_boiler_peaks_day_ahead],
+    ax_day_ahead.barh(['E-boiler (Day-Ahead)', 'Gas-boiler (Day-Ahead)'],
+                      [sum_e_boiler_day_ahead, sum_gas_boiler_day_ahead],
                       color=['blue', 'red'])
     
     ax_day_ahead.set_xlabel('Total Power (kW)')
-    ax_day_ahead.set_title('Total Sum of Peaks - Day-Ahead Power')
-    ax_day_ahead.set_xlim(0, max(sum_e_boiler_peaks_day_ahead, sum_gas_boiler_peaks_day_ahead) * 1.1)
+    ax_day_ahead.set_title('Total Power - Day-Ahead')
+    ax_day_ahead.set_xlim(0, max(sum_e_boiler_day_ahead, sum_gas_boiler_day_ahead) * 1.1)
     plt.tight_layout()
 
-    # Calculate the sum of peaks for imbalance data
-    e_boiler_peaks_imbalance, _ = find_peaks(imbalance_data['E-boiler_Power_Imbalance'], distance=5, prominence=1)
-    gas_boiler_peaks_imbalance, _ = find_peaks(imbalance_data['Gas-boiler_Power_Imbalance'], distance=5, prominence=1)
-    
-    sum_e_boiler_peaks_imbalance = imbalance_data['E-boiler_Power_Imbalance'].iloc[e_boiler_peaks_imbalance].sum()
-    sum_gas_boiler_peaks_imbalance = imbalance_data['Gas-boiler_Power_Imbalance'].iloc[gas_boiler_peaks_imbalance].sum()
+    # Calculate the sum of power for imbalance data
+    sum_e_boiler_imbalance = imbalance_data['E-boiler_Power_Imbalance'].sum()
+    sum_gas_boiler_imbalance = imbalance_data['Gas-boiler_Power_Imbalance'].sum()
     
     # Create horizontal bar chart for imbalance data
     fig_imbalance, ax_imbalance = plt.subplots(figsize=(8, 4))
-    ax_imbalance.barh(['E-boiler Peaks (Imbalance)', 'Gas-boiler Peaks (Imbalance)'],
-                      [sum_e_boiler_peaks_imbalance, sum_gas_boiler_peaks_imbalance],
+    ax_imbalance.barh(['E-boiler (Imbalance)', 'Gas-boiler (Imbalance)'],
+                      [sum_e_boiler_imbalance, sum_gas_boiler_imbalance],
                       color=['blue', 'red'])
     
     ax_imbalance.set_xlabel('Total Power (kW)')
-    ax_imbalance.set_title('Total Sum of Peaks - Imbalance Power')
-    ax_imbalance.set_xlim(0, max(sum_e_boiler_peaks_imbalance, sum_gas_boiler_peaks_imbalance) * 1.1)
+    ax_imbalance.set_title('Total Power - Imbalance')
+    ax_imbalance.set_xlim(0, max(sum_e_boiler_imbalance, sum_gas_boiler_imbalance) * 1.1)
     plt.tight_layout()
 
     return fig_day_ahead, fig_imbalance
