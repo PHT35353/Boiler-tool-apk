@@ -139,75 +139,103 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
 
 
-
 def plot_price(day_ahead_data, imbalance_data, gas_price):
-    fig, ax = plt.subplots(figsize=(12, 6)) 
+    # Plot for Day-Ahead E-boiler and Gas-boiler prices
+    fig_day_ahead, ax_day_ahead = plt.subplots(figsize=(12, 6))
 
     # Convert time to datetime and set as index
     day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
     day_ahead_data.set_index('Time', inplace=True)
-    
-    imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
-    imbalance_data.set_index('Time', inplace=True)
-    
-    # Plot day-ahead prices
-    ax.plot(day_ahead_data.index, day_ahead_data['Day-Ahead_Price_EUR_per_MWh'], color='red', label='Day-Ahead E-boiler Price', linewidth=0.5, alpha=0.7)
-    
-    # Plot imbalance prices
-    ax.plot(imbalance_data.index, imbalance_data['Imbalance_Price_EUR_per_MWh'], color='blue', label='Imbalance E-boiler Price', linewidth=0.5, alpha=0.7)
 
-    # Plot gas price as a constant line
-    ax.axhline(y=gas_price * 1000, color='green', linestyle='--', label='Gas Price (EUR/MWh)', linewidth=1)
+    # Plot day-ahead E-boiler prices in blue
+    ax_day_ahead.plot(day_ahead_data.index, day_ahead_data['Day-Ahead_Price_EUR_per_MWh'], color='blue', label='Day-Ahead E-boiler Price', linewidth=0.5, alpha=0.7)
+    
+    # Plot gas price as a constant line in red
+    ax_day_ahead.axhline(y=gas_price * 1000, color='red', linestyle='--', label='Gas Price (EUR/MWh)', linewidth=1)
 
-    ax.set_title('Boiler Price Efficiency Over Time')
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Price EUR per MWh')
-    ax.legend()
+    ax_day_ahead.set_title('Day-Ahead E-boiler vs Gas-boiler Prices')
+    ax_day_ahead.set_xlabel('Time')
+    ax_day_ahead.set_ylabel('Price EUR per MWh')
+    ax_day_ahead.legend()
 
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    ax_day_ahead.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
 
-    return fig
+    # Plot for Imbalance E-boiler and Gas-boiler prices
+    fig_imbalance, ax_imbalance = plt.subplots(figsize=(12, 6))
+
+    # Convert time to datetime and set as index
+    imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
+    imbalance_data.set_index('Time', inplace=True)
+
+    # Plot imbalance E-boiler prices in blue
+    ax_imbalance.plot(imbalance_data.index, imbalance_data['Imbalance_Price_EUR_per_MWh'], color='blue', label='Imbalance E-boiler Price', linewidth=0.5, alpha=0.7)
+    
+    # Plot gas price as a constant line in red
+    ax_imbalance.axhline(y=gas_price * 1000, color='red', linestyle='--', label='Gas Price (EUR/MWh)', linewidth=1)
+
+    ax_imbalance.set_title('Imbalance E-boiler vs Gas-boiler Prices')
+    ax_imbalance.set_xlabel('Time')
+    ax_imbalance.set_ylabel('Price EUR per MWh')
+    ax_imbalance.legend()
+
+    ax_imbalance.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+
+    return fig_day_ahead, fig_imbalance
 
 
-# this function is for plotting the power graph
 def plot_power(day_ahead_data, imbalance_data):
-    fig, ax = plt.subplots(figsize=(14, 8))  
+    # Plot for Day-Ahead E-boiler and Gas-boiler power peaks and zeros
+    fig_day_ahead, ax_day_ahead = plt.subplots(figsize=(14, 8))  
 
-    # Plot peaks and zero points for day-ahead prices
     e_boiler_peaks_day_ahead, _ = find_peaks(day_ahead_data['E-boiler_Power_Day_Ahead'], distance=5, prominence=1)
     gas_boiler_peaks_day_ahead, _ = find_peaks(day_ahead_data['Gas-boiler_Power_Day_Ahead'], distance=5, prominence=1)
 
     e_boiler_zeros_day_ahead = day_ahead_data[day_ahead_data['E-boiler_Power_Day_Ahead'] == 0].index
     gas_boiler_zeros_day_ahead = day_ahead_data[day_ahead_data['Gas-boiler_Power_Day_Ahead'] == 0].index
 
-    ax.plot(day_ahead_data.index[e_boiler_peaks_day_ahead], day_ahead_data['E-boiler_Power_Day_Ahead'].iloc[e_boiler_peaks_day_ahead], 'b^-', label='Day-Ahead E-boiler Peaks', markersize=6)
-    ax.plot(e_boiler_zeros_day_ahead, day_ahead_data['E-boiler_Power_Day_Ahead'].loc[e_boiler_zeros_day_ahead], 'b^', label='Day-Ahead E-boiler Zeros', markersize=6)
-    ax.plot(day_ahead_data.index[gas_boiler_peaks_day_ahead], day_ahead_data['Gas-boiler_Power_Day_Ahead'].iloc[gas_boiler_peaks_day_ahead], 'r^-', label='Day-Ahead Gas-boiler Peaks', markersize=6)
-    ax.plot(gas_boiler_zeros_day_ahead, day_ahead_data['Gas-boiler_Power_Day_Ahead'].loc[gas_boiler_zeros_day_ahead], 'r^', label='Day-Ahead Gas-boiler Zeros', markersize=6)
+    ax_day_ahead.plot(day_ahead_data.index[e_boiler_peaks_day_ahead], day_ahead_data['E-boiler_Power_Day_Ahead'].iloc[e_boiler_peaks_day_ahead], 'b^-', label='Day-Ahead E-boiler Peaks', markersize=6)
+    ax_day_ahead.plot(e_boiler_zeros_day_ahead, day_ahead_data['E-boiler_Power_Day_Ahead'].loc[e_boiler_zeros_day_ahead], 'b^', label='Day-Ahead E-boiler Zeros', markersize=6)
+    ax_day_ahead.plot(day_ahead_data.index[gas_boiler_peaks_day_ahead], day_ahead_data['Gas-boiler_Power_Day_Ahead'].iloc[gas_boiler_peaks_day_ahead], 'r^-', label='Day-Ahead Gas-boiler Peaks', markersize=6)
+    ax_day_ahead.plot(gas_boiler_zeros_day_ahead, day_ahead_data['Gas-boiler_Power_Day_Ahead'].loc[gas_boiler_zeros_day_ahead], 'r^', label='Day-Ahead Gas-boiler Zeros', markersize=6)
 
-    # Plot peaks and zero points for imbalance prices
+    ax_day_ahead.set_title('Day-Ahead E-boiler vs Gas-boiler Power Peaks and Zeros')
+    ax_day_ahead.set_xlabel('Time')
+    ax_day_ahead.set_ylabel('Power (kW)')
+    ax_day_ahead.legend()
+
+    ax_day_ahead.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+
+    # Plot for Imbalance E-boiler and Gas-boiler power peaks and zeros
+    fig_imbalance, ax_imbalance = plt.subplots(figsize=(14, 8))  
+
     e_boiler_peaks_imbalance, _ = find_peaks(imbalance_data['E-boiler_Power_Imbalance'], distance=5, prominence=1)
     gas_boiler_peaks_imbalance, _ = find_peaks(imbalance_data['Gas-boiler_Power_Imbalance'], distance=5, prominence=1)
 
     e_boiler_zeros_imbalance = imbalance_data[imbalance_data['E-boiler_Power_Imbalance'] == 0].index
     gas_boiler_zeros_imbalance = imbalance_data[imbalance_data['Gas-boiler_Power_Imbalance'] == 0].index
 
-    ax.plot(imbalance_data.index[e_boiler_peaks_imbalance], imbalance_data['E-boiler_Power_Imbalance'].iloc[e_boiler_peaks_imbalance], 'g^-', label='Imbalance E-boiler Peaks', markersize=6)
-    ax.plot(e_boiler_zeros_imbalance, imbalance_data['E-boiler_Power_Imbalance'].loc[e_boiler_zeros_imbalance], 'g^', label='Imbalance E-boiler Zeros', markersize=6)
-    ax.plot(imbalance_data.index[gas_boiler_peaks_imbalance], imbalance_data['Gas-boiler_Power_Imbalance'].iloc[gas_boiler_peaks_imbalance], 'y^-', label='Imbalance Gas-boiler Peaks', markersize=6)
-    ax.plot(gas_boiler_zeros_imbalance, imbalance_data['Gas-boiler_Power_Imbalance'].loc[gas_boiler_zeros_imbalance], 'y^', label='Imbalance Gas-boiler Zeros', markersize=6)
+    ax_imbalance.plot(imbalance_data.index[e_boiler_peaks_imbalance], imbalance_data['E-boiler_Power_Imbalance'].iloc[e_boiler_peaks_imbalance], 'b^-', label='Imbalance E-boiler Peaks', markersize=6)
+    ax_imbalance.plot(e_boiler_zeros_imbalance, imbalance_data['E-boiler_Power_Imbalance'].loc[e_boiler_zeros_imbalance], 'b^', label='Imbalance E-boiler Zeros', markersize=6)
+    ax_imbalance.plot(imbalance_data.index[gas_boiler_peaks_imbalance], imbalance_data['Gas-boiler_Power_Imbalance'].iloc[gas_boiler_peaks_imbalance], 'r^-', label='Imbalance Gas-boiler Peaks', markersize=6)
+    ax_imbalance.plot(gas_boiler_zeros_imbalance, imbalance_data['Gas-boiler_Power_Imbalance'].loc[gas_boiler_zeros_imbalance], 'r^', label='Imbalance Gas-boiler Zeros', markersize=6)
 
-    ax.set_title('Boiler Power Delivery - Peaks and Zeros')
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Power (kW)')
-    ax.legend()
+    ax_imbalance.set_title('Imbalance E-boiler vs Gas-boiler Power Peaks and Zeros')
+    ax_imbalance.set_xlabel('Time')
+    ax_imbalance.set_ylabel('Power (kW)')
+    ax_imbalance.legend()
 
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    ax_imbalance.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
-    return fig
+
+    return fig_day_ahead, fig_imbalance
+
 
 
 def main():
