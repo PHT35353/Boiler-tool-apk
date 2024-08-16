@@ -140,44 +140,40 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def plot_price(day_ahead_data, imbalance_data, gas_price):
-    # Plot for Day-Ahead E-boiler and Gas-boiler prices
+    # Plot for Day-Ahead E-boiler and Gas-boiler costs
     fig_day_ahead, ax_day_ahead = plt.subplots(figsize=(12, 6))
 
     # Convert time to datetime and set as index
     day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
     day_ahead_data.set_index('Time', inplace=True)
 
-    # Plot day-ahead E-boiler prices in blue
-    ax_day_ahead.plot(day_ahead_data.index, day_ahead_data['Day-Ahead_Price_EUR_per_MWh'], color='blue', label='Day-Ahead E-boiler Price', linewidth=0.5, alpha=0.7)
-    
-    # Plot gas price as a constant line in red
-    ax_day_ahead.axhline(y=gas_price * 1000, color='red', linestyle='--', label='Gas Price (EUR/MWh)', linewidth=1)
+    # Plot day-ahead E-boiler and Gas-boiler costs in blue and red
+    ax_day_ahead.plot(day_ahead_data.index, day_ahead_data['E_Boiler_Cost'], color='blue', label='E-boiler Cost (Day-Ahead)', linewidth=0.5, alpha=0.7)
+    ax_day_ahead.plot(day_ahead_data.index, day_ahead_data['Gas_Boiler_Cost'], color='red', label='Gas-boiler Cost (Day-Ahead)', linestyle='--', linewidth=0.5, alpha=0.7)
 
-    ax_day_ahead.set_title('Day-Ahead E-boiler vs Gas-boiler Prices')
+    ax_day_ahead.set_title('Day-Ahead E-boiler vs Gas-boiler Costs')
     ax_day_ahead.set_xlabel('Time')
-    ax_day_ahead.set_ylabel('Price EUR per MWh')
+    ax_day_ahead.set_ylabel('Cost (EUR)')
     ax_day_ahead.legend()
 
     ax_day_ahead.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
 
-    # Plot for Imbalance E-boiler and Gas-boiler prices
+    # Plot for Imbalance E-boiler and Gas-boiler costs
     fig_imbalance, ax_imbalance = plt.subplots(figsize=(12, 6))
 
     # Convert time to datetime and set as index
     imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
     imbalance_data.set_index('Time', inplace=True)
 
-    # Plot imbalance E-boiler prices in blue
-    ax_imbalance.plot(imbalance_data.index, imbalance_data['Imbalance_Price_EUR_per_MWh'], color='blue', label='Imbalance E-boiler Price', linewidth=0.5, alpha=0.7)
-    
-    # Plot gas price as a constant line in red
-    ax_imbalance.axhline(y=gas_price * 1000, color='red', linestyle='--', label='Gas Price (EUR/MWh)', linewidth=1)
+    # Plot imbalance E-boiler and Gas-boiler costs in blue and red
+    ax_imbalance.plot(imbalance_data.index, imbalance_data['E_Boiler_Cost_Imbalance'], color='blue', label='E-boiler Cost (Imbalance)', linewidth=0.5, alpha=0.7)
+    ax_imbalance.plot(imbalance_data.index, imbalance_data['Gas_Boiler_Cost_Imbalance'], color='red', label='Gas-boiler Cost (Imbalance)', linestyle='--', linewidth=0.5, alpha=0.7)
 
-    ax_imbalance.set_title('Imbalance E-boiler vs Gas-boiler Prices')
+    ax_imbalance.set_title('Imbalance E-boiler vs Gas-boiler Costs')
     ax_imbalance.set_xlabel('Time')
-    ax_imbalance.set_ylabel('Price EUR per MWh')
+    ax_imbalance.set_ylabel('Cost (EUR)')
     ax_imbalance.legend()
 
     ax_imbalance.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
