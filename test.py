@@ -95,14 +95,14 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     desired_power_mwh = Decimal(desired_power) / Decimal(1000)  # Convert kW to MWh
     
     # Calculate the cost for each time point directly
-    data['Gas_Boiler_Cost'] = data.apply(lambda row: Decimal(desired_power_mwh) * Decimal(gas_price_mwh) 
+    data['Gas_Boiler_Cost'] = data.apply(lambda row: desired_power_mwh * gas_price_mwh 
                                          if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else (0), axis=1)
     
     # Sum the costs to get the total gas boiler cost
     gas_boiler_cost = data['Gas_Boiler_Cost'].sum()
     
     # Calculate the e-boiler cost similarly
-    data['E_Boiler_Cost'] = data.apply(lambda row: Decimal(desired_power_mwh) * (row['Day-Ahead_Price_EUR_per_MWh']) 
+    data['E_Boiler_Cost'] = data.apply(lambda row: desired_power_mwh * (row['Day-Ahead_Price_EUR_per_MWh']) 
                                        if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else (0), axis=1)
     e_boiler_cost = data['E_Boiler_Cost'].sum()
     
@@ -120,14 +120,14 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     desired_power_mwh = Decimal(desired_power) / Decimal(1000)  # Convert kW to MWh
     
     # Calculate the cost for each time point directly
-    data['Gas_Boiler_Cost_Imbalance'] = data.apply(lambda row: Decimal(desired_power_mwh) * Decimal(gas_price_mwh) 
+    data['Gas_Boiler_Cost_Imbalance'] = data.apply(lambda row: desired_power_mwh * gas_price_mwh 
                                                    if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else (0), axis=1)
     
     # Sum the costs to get the total gas boiler cost
     gas_boiler_cost = data['Gas_Boiler_Cost_Imbalance'].sum()
     
     # Calculate the e-boiler cost similarly
-    data['E_Boiler_Cost_Imbalance'] = data.apply(lambda row: Decimal(desired_power_mwh) * (row['Imbalance_Price_EUR_per_MWh']) 
+    data['E_Boiler_Cost_Imbalance'] = data.apply(lambda row: desired_power_mwh * (row['Imbalance_Price_EUR_per_MWh']) 
                                                  if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else (0), axis=1)
     e_boiler_cost = data['E_Boiler_Cost_Imbalance'].sum()
     
