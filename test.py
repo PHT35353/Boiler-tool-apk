@@ -91,8 +91,8 @@ def calculate_power_imbalance(data, desired_power):
 # Function to calculate savings for day-ahead data
 def calculate_savings_day_ahead(data, gas_price, desired_power):
     # Convert everything to Decimal early on
-    gas_price_mwh = (gas_price) * Decimal(1000)
-    desired_power_mwh = (desired_power) / Decimal(1000)  # Convert kW to MWh
+    gas_price_mwh = (gas_price) * (1000)
+    desired_power_mwh = (desired_power) / (1000)  # Convert kW to MWh
     
     # Calculate the cost for each time point directly
     data['Gas_Boiler_Cost'] = data.apply(lambda row: desired_power_mwh * gas_price_mwh 
@@ -107,7 +107,7 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     e_boiler_cost = data['E_Boiler_Cost'].sum()
     
     # Calculate savings
-    total_savings = (abs(e_boiler_cost))
+    total_savings = Decimal(abs(e_boiler_cost))
     percentage_savings = ((total_savings) / (gas_boiler_cost) * (100)) if gas_boiler_cost else (0)
     
     # Return the calculated savings, percentages, and costs
