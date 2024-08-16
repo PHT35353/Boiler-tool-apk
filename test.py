@@ -52,7 +52,7 @@ def get_imbalance_data(start, end, country_code):
 def efficient_boiler_day_ahead(day_ahead_price, gas_price):
     if pd.isna(day_ahead_price):
         return 'Unknown'
-    if (day_ahead_price) < (gas_price) / (1000):
+    if Decimal(day_ahead_price) < Decimal(gas_price) / (1000):
         return 'E-boiler'
     else:
         return 'Gas-boiler'
@@ -61,7 +61,7 @@ def efficient_boiler_day_ahead(day_ahead_price, gas_price):
 def efficient_boiler_imbalance(imbalance_price, gas_price):
     if pd.isna(imbalance_price):
         return 'Unknown'
-    if (imbalance_price) < (gas_price) / 1000:
+    if Decimal(imbalance_price) < Decimal(gas_price) / 1000:
         return 'E-boiler'
     else:
         return 'Gas-boiler'
