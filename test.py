@@ -91,7 +91,7 @@ def calculate_power_imbalance(data, desired_power):
 # Function to calculate savings for day-ahead data
 def calculate_savings_day_ahead(data, gas_price, desired_power):
     # Convert everything to Decimal early on
-    gas_price_mwh = Decimal(gas_price) * Decimal(1000)
+    gas_price_mwh = (gas_price) * Decimal(1000)
     desired_power_mwh = (desired_power) / Decimal(1000)  # Convert kW to MWh
     
     # Calculate the cost for each time point directly
