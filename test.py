@@ -12,7 +12,7 @@ st.title('Boiler Efficiency and Power Analysis Tool')
 st.markdown("""How it works?
 
 This tool allows you to compare the efficiency and costs between E-boilers and Gas-boilers based on day-ahead and imbalance electricity prices.
-You can select the date range, country, gas price, and desired power to analyze the costs and determine which boiler is more cost-effective.
+You can select the date range, country, gas price, and desired power that you wish to get out of these boilers to analyze the costs and determine which boiler is more cost-effective.
 The results are displayed in interactive plots, and a summary of the key findings is provided.
 """)
 
@@ -101,14 +101,14 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     desired_power_mwh = (desired_power) / (1000)  # Convert kW to MWh
     
     # Calculate the cost for each time point directly
-    data['Gas_Boiler_Cost'] = data.apply(lambda row: desired_power_mwh * gas_price_mwh 
+    data['Gas_Boiler_Cost_in_Euro'] = data.apply(lambda row: desired_power_mwh * gas_price_mwh 
                                          if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else (0), axis=1)
     
     # Sum the costs to get the total gas boiler cost
-    gas_boiler_cost = data['Gas_Boiler_Cost'].sum()
+    gas_boiler_cost = data['Gas_Boiler_Cost_in_Euro'].sum()
     
     # Calculate the e-boiler cost similarly
-    data['E_Boiler_Cost'] = data.apply(lambda row: desired_power_mwh * (row['Day-Ahead_Price_EUR_per_MWh']) 
+    data['E_Boiler_Cost_in_Euro'] = data.apply(lambda row: desired_power_mwh * (row['Day-Ahead_Price_EUR_per_MWh']) 
                                        if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else (0), axis=1)
     e_boiler_cost = data['E_Boiler_Cost'].sum()
     
@@ -117,7 +117,7 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     percentage_savings = ((total_savings) / (gas_boiler_cost) * (100)) if gas_boiler_cost else (0)
     
     # Return the calculated savings, percentages, and costs
-    return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
+    return total_savings, percentage_savings, e_boiler_cost_in_Euro, gas_boiler_cost_in_Euro
 
 # Function to calculate savings for imbalance data
 def calculate_savings_imbalance(data, gas_price, desired_power):
@@ -126,14 +126,14 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     desired_power_mwh = (desired_power) / (1000)  # Convert kW to MWh
     
     # Calculate the cost for each time point directly
-    data['Gas_Boiler_Cost_Imbalance'] = data.apply(lambda row: desired_power_mwh * gas_price_mwh 
+    data['Gas_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: desired_power_mwh * gas_price_mwh 
                                                    if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else (0), axis=1)
     
     # Sum the costs to get the total gas boiler cost
     gas_boiler_cost = data['Gas_Boiler_Cost_Imbalance'].sum()
     
     # Calculate the e-boiler cost similarly
-    data['E_Boiler_Cost_Imbalance'] = data.apply(lambda row: desired_power_mwh * (row['Imbalance_Price_EUR_per_MWh']) 
+    data['E_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: desired_power_mwh * (row['Imbalance_Price_EUR_per_MWh']) 
                                                  if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else (0), axis=1)
     e_boiler_cost = data['E_Boiler_Cost_Imbalance'].sum()
     
@@ -142,7 +142,7 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     percentage_savings = ((total_savings) / (gas_boiler_cost) * (100)) if gas_boiler_cost else (0)
     
     # Return the calculated savings, percentages, and costs
-    return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
+    return total_savings, percentage_savings, e_boiler_cost_in_Euro, gas_boiler_cost_in_Euro
 
 
 
@@ -155,9 +155,9 @@ def plot_price(day_ahead_data, imbalance_data):
     day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
 
     # Plot day-ahead E-boiler and Gas-boiler costs
-    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['E_Boiler_Cost'], 
+    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['E_Boiler_Cost_in_Euro'], 
                                        mode='lines', name='E-boiler Cost (Day-Ahead)', line=dict(color='blue')))
-    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['Gas_Boiler_Cost'], 
+    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['Gas_Boiler_Cost_in_Euro'], 
                                        mode='lines', name='Gas-boiler Cost (Day-Ahead)', line=dict(color='red', dash='dash')))
 
     day_ahead_fig.update_layout(title='Day-Ahead E-boiler vs Gas-boiler Costs',
@@ -173,9 +173,9 @@ def plot_price(day_ahead_data, imbalance_data):
     imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
 
     # Plot imbalance E-boiler and Gas-boiler costs
-    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['E_Boiler_Cost_Imbalance'], 
+    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['E_Boiler_Cost_Imbalance_in_Euro'], 
                                        mode='lines', name='E-boiler Cost (Imbalance)', line=dict(color='blue')))
-    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['Gas_Boiler_Cost_Imbalance'], 
+    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['Gas_Boiler_Cost_Imbalance_in_Euro'], 
                                        mode='lines', name='Gas-boiler Cost (Imbalance)', line=dict(color='red', dash='dash')))
 
     imbalance_fig.update_layout(title='Imbalance E-boiler vs Gas-boiler Costs',
@@ -234,7 +234,7 @@ def main():
     start_date = st.sidebar.date_input('Start date', pd.to_datetime('2023-01-01'))
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
     country_code = st.sidebar.text_input('Country code', 'NL')
-    gas_price = st.sidebar.number_input('Gas price per kWh', value=0.30 / 9.796)
+    gas_price = st.sidebar.number_input('Gas price in EUR/kWh', value=0.30 / 9.796)
     desired_power = st.sidebar.number_input('Desired Power (kW)', min_value=0.0, value=100.0, step=1.0)
     
     if st.sidebar.button('Get Data'):
