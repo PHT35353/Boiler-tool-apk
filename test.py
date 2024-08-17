@@ -283,39 +283,16 @@ def main():
             st.dataframe(imbalance_data)
             
             # Display the price plots
-            fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data, gas_price)
+            fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data)
             st.write('### Price Comparison:')
-            st.pyplot(fig_day_ahead_price)
-            st.pyplot(fig_imbalance_price)
+            st.plotly_chart(fig_day_ahead_price)
+            st.plotly_chart(fig_imbalance_price)
             
             # Display the power plots
             fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data)
             st.write('### Power Usage Peaks and Zeros:')
-            st.pyplot(fig_day_ahead_power)
-            st.pyplot(fig_imbalance_power)
+            st.plotly_chart(fig_day_ahead_power)
+            st.plotly_chart(fig_imbalance_power)
 
 if __name__ == '__main__':
     main()
-     # Display the price plots
-    fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data)
-    st.write('### Price Comparison:')
-    st.plotly_chart(fig_day_ahead_price)
-    st.plotly_chart(fig_imbalance_price)
-
-    # Display the power plots (if you want to convert these to Plotly as well)
-    fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data)
-    st.write('### Power Usage Peaks and Zeros:')
-    st.plotly_chart(fig_day_ahead_power)
-    st.plotly_chart(fig_imbalance_power)
-
-     # Display the price plots
-    fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data)
-    st.write('### Price Comparison:')
-    st.plotly_chart(fig_day_ahead_price)
-    st.plotly_chart(fig_imbalance_price)
-
-    # Display the power plots using Plotly
-    fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data)
-    st.write('### Power Usage Peaks and Zeros:')
-    st.plotly_chart(fig_day_ahead_power)
-    st.plotly_chart(fig_imbalance_power)
