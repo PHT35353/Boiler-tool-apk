@@ -2,3 +2,4 @@ scipy
 entsoe-py
 streamlit
 matplotlib
+plotly
