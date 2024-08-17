@@ -147,41 +147,44 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def plot_price(day_ahead_data, imbalance_data):
-    # Plot for Day-Ahead E-boiler and Gas-boiler costs
-    day_ahead_fig = go.Figure()
+    # Ensure the required columns exist
+    if 'E_Boiler_Cost' in day_ahead_data.columns and 'Gas_Boiler_Cost' in day_ahead_data.columns:
+        # Plot for Day-Ahead E-boiler and Gas-boiler costs
+        day_ahead_fig = go.Figure()
 
-    # Convert time to datetime
-    day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
+        # Convert time to datetime
+        day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
 
-    # Plot day-ahead E-boiler and Gas-boiler costs
-    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['E_Boiler_Cost'], 
-                                       mode='lines', name='E-boiler Cost (Day-Ahead)', line=dict(color='blue')))
-    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['Gas_Boiler_Cost'], 
-                                       mode='lines', name='Gas-boiler Cost (Day-Ahead)', line=dict(color='red', dash='dash')))
+        # Plot day-ahead E-boiler and Gas-boiler costs
+        day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['E_Boiler_Cost'], 
+                                           mode='lines', name='E-boiler Cost (Day-Ahead)', line=dict(color='blue')))
+        day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['Gas_Boiler_Cost'], 
+                                           mode='lines', name='Gas-boiler Cost (Day-Ahead)', line=dict(color='red', dash='dash')))
 
-    day_ahead_fig.update_layout(title='Day-Ahead E-boiler vs Gas-boiler Costs',
-                                xaxis_title='Time',
-                                yaxis_title='Cost (EUR)',
-                                xaxis=dict(tickformat='%Y-%m-%d'),
-                                legend=dict(x=1, y=1, xanchor='right', yanchor='top'))  # Moved legend
+        day_ahead_fig.update_layout(title='Day-Ahead E-boiler vs Gas-boiler Costs',
+                                    xaxis_title='Time',
+                                    yaxis_title='Cost (EUR)',
+                                    xaxis=dict(tickformat='%Y-%m-%d'),
+                                    legend=dict(x=1, y=1, xanchor='right', yanchor='top'))  # Moved legend
 
-    # Plot for Imbalance E-boiler and Gas-boiler costs
-    imbalance_fig = go.Figure()
+    if 'E_Boiler_Cost_Imbalance' in imbalance_data.columns and 'Gas_Boiler_Cost_Imbalance' in imbalance_data.columns:
+        # Plot for Imbalance E-boiler and Gas-boiler costs
+        imbalance_fig = go.Figure()
 
-    # Convert time to datetime
-    imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
+        # Convert time to datetime
+        imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
 
-    # Plot imbalance E-boiler and Gas-boiler costs
-    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['E_Boiler_Cost_Imbalance'], 
-                                       mode='lines', name='E-boiler Cost (Imbalance)', line=dict(color='blue')))
-    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['Gas_Boiler_Cost_Imbalance'], 
-                                       mode='lines', name='Gas-boiler Cost (Imbalance)', line=dict(color='red', dash='dash')))
+        # Plot imbalance E-boiler and Gas-boiler costs
+        imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['E_Boiler_Cost_Imbalance'], 
+                                           mode='lines', name='E-boiler Cost (Imbalance)', line=dict(color='blue')))
+        imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['Gas_Boiler_Cost_Imbalance'], 
+                                           mode='lines', name='Gas-boiler Cost (Imbalance)', line=dict(color='red', dash='dash')))
 
-    imbalance_fig.update_layout(title='Imbalance E-boiler vs Gas-boiler Costs',
-                                xaxis_title='Time',
-                                yaxis_title='Cost (EUR)',
-                                xaxis=dict(tickformat='%Y-%m-%d'),
-                                legend=dict(x=1, y=1, xanchor='right', yanchor='top'))  # Moved legend
+        imbalance_fig.update_layout(title='Imbalance E-boiler vs Gas-boiler Costs',
+                                    xaxis_title='Time',
+                                    yaxis_title='Cost (EUR)',
+                                    xaxis=dict(tickformat='%Y-%m-%d'),
+                                    legend=dict(x=1, y=1, xanchor='right', yanchor='top'))  # Moved legend
 
     return day_ahead_fig, imbalance_fig
 
@@ -228,7 +231,7 @@ def plot_power(day_ahead_data, imbalance_data):
 
 
 def main():
-   
+    st.title('Boiler Efficiency and Power Analysis')
     
     # Sidebar settings for user input
     st.sidebar.title('Settings')
@@ -260,22 +263,24 @@ def main():
             total_cost_day_ahead = (gas_boiler_cost_day_ahead) - (abs(e_boiler_cost_day_ahead))
             total_cost_imbalance = (gas_boiler_cost_imbalance) - (abs(e_boiler_cost_imbalance))
             
-            # Displaying the results in a visually appealing way
+            # Displaying the results with wider columns or st.write() to avoid truncation
             st.write('### Day-Ahead Data Results:')
-            col1, col2, col3, col4, col5 = st.columns(5)
-            col1.metric("Total Savings", f"{total_savings_day_ahead:,.2f} EUR")
-            col2.metric("Percentage Savings", f"{percentage_savings_day_ahead:.2f}%")
-            col3.metric("Total Cost", f"{total_cost_day_ahead:,.2f} EUR")
-            col4.metric("E-boiler Cost", f"{e_boiler_cost_day_ahead:,.2f} EUR")
-            col5.metric("Gas-boiler Cost", f"{gas_boiler_cost_day_ahead:,.2f} EUR")
+            with st.container():
+                col1, col2, col3, col4, col5 = st.columns([1.5, 1.5, 1.5, 2, 2])
+                col1.write(f"**Total Savings:**\n{total_savings_day_ahead:,.2f} EUR")
+                col2.write(f"**Percentage Savings:**\n{percentage_savings_day_ahead:.2f}%")
+                col3.write(f"**Total Cost:**\n{total_cost_day_ahead:,.2f} EUR")
+                col4.write(f"**E-boiler Cost:**\n{e_boiler_cost_day_ahead:,.2f} EUR")
+                col5.write(f"**Gas-boiler Cost:**\n{gas_boiler_cost_day_ahead:,.2f} EUR")
 
             st.write('### Imbalance Data Results:')
-            col6, col7, col8, col9, col10 = st.columns(5)
-            col6.metric("Total Savings", f"{total_savings_imbalance:,.2f} EUR")
-            col7.metric("Percentage Savings", f"{percentage_savings_imbalance:.2f}%")
-            col8.metric("Total Cost", f"{total_cost_imbalance:,.2f} EUR")
-            col9.metric("E-boiler Cost", f"{e_boiler_cost_imbalance:,.2f} EUR")
-            col10.metric("Gas-boiler Cost", f"{gas_boiler_cost_imbalance:,.2f} EUR")
+            with st.container():
+                col6, col7, col8, col9, col10 = st.columns([1.5, 1.5, 1.5, 2, 2])
+                col6.write(f"**Total Savings:**\n{total_savings_imbalance:,.2f} EUR")
+                col7.write(f"**Percentage Savings:**\n{percentage_savings_imbalance:.2f}%")
+                col8.write(f"**Total Cost:**\n{total_cost_imbalance:,.2f} EUR")
+                col9.write(f"**E-boiler Cost:**\n{e_boiler_cost_imbalance:,.2f} EUR")
+                col10.write(f"**Gas-boiler Cost:**\n{gas_boiler_cost_imbalance:,.2f} EUR")
 
             # Display the data tables
             st.write('### Day-Ahead Data Table:')
