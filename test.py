@@ -9,7 +9,8 @@ import plotly.graph_objs as go
 API_TOKEN = '0464a296-1b5d-4be6-a037-b3414de630f8'
 client = EntsoePandasClient(api_key=API_TOKEN)
 st.title('Boiler Efficiency and Power Analysis Tool')
-st.markdown("""
+st.markdown("""How it works?
+
 This tool allows you to compare the efficiency and costs between E-boilers and Gas-boilers based on day-ahead and imbalance electricity prices.
 You can select the date range, country, gas price, and desired power to analyze the costs and determine which boiler is more cost-effective.
 The results are displayed in interactive plots, and a summary of the key findings is provided.
@@ -228,8 +229,6 @@ def plot_power(day_ahead_data, imbalance_data):
 
 
 def main():
-    st.title('Boiler Efficiency and Power Analysis')
-    
     # Sidebar settings for user input
     st.sidebar.title('Settings')
     start_date = st.sidebar.date_input('Start date', pd.to_datetime('2023-01-01'))
