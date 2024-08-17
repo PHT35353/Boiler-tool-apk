@@ -229,7 +229,7 @@ def plot_power(day_ahead_data, imbalance_data):
 
 
 def main():
-    st.title('Boiler Efficiency and Power Analysis')
+  
     
     # Sidebar settings for user input
     st.sidebar.title('Settings')
