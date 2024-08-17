@@ -147,7 +147,11 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def plot_price(day_ahead_data, imbalance_data):
-    # Ensure the required columns exist
+    # Define empty figures
+    day_ahead_fig = go.Figure()
+    imbalance_fig = go.Figure()
+
+    # Check if the required columns exist for day-ahead data
     if 'E_Boiler_Cost' in day_ahead_data.columns and 'Gas_Boiler_Cost' in day_ahead_data.columns:
         # Plot for Day-Ahead E-boiler and Gas-boiler costs
         day_ahead_fig = go.Figure()
@@ -167,6 +171,7 @@ def plot_price(day_ahead_data, imbalance_data):
                                     xaxis=dict(tickformat='%Y-%m-%d'),
                                     legend=dict(x=1, y=1, xanchor='right', yanchor='top'))  # Moved legend
 
+    # Check if the required columns exist for imbalance data
     if 'E_Boiler_Cost_Imbalance' in imbalance_data.columns and 'Gas_Boiler_Cost_Imbalance' in imbalance_data.columns:
         # Plot for Imbalance E-boiler and Gas-boiler costs
         imbalance_fig = go.Figure()
