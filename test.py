@@ -260,20 +260,18 @@ def main():
             total_cost_day_ahead = (gas_boiler_cost_day_ahead) - (abs(e_boiler_cost_day_ahead))
             total_cost_imbalance = (gas_boiler_cost_imbalance) - (abs(e_boiler_cost_imbalance))
             
-            # Displaying the results in Streamlit
+            # Displaying the results in a visually appealing way
             st.write('### Day-Ahead Data Results:')
-            st.write(f'Total Savings (Day-Ahead): {total_savings_day_ahead:.2f} EUR')
-            st.write(f'Percentage Savings (Day-Ahead): {percentage_savings_day_ahead:.2f}%')
-            st.write(f'E-boiler Cost (Day-Ahead): {e_boiler_cost_day_ahead:.2f} EUR')
-            st.write(f'Gas-boiler Cost (Day-Ahead): {gas_boiler_cost_day_ahead:.2f} EUR')
-            st.write(f'Total Cost (Day-Ahead): {total_cost_day_ahead:.2f} EUR')
-            
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Total Savings (Day-Ahead)", f"{total_savings_day_ahead:.2f} EUR")
+            col2.metric("Percentage Savings (Day-Ahead)", f"{percentage_savings_day_ahead:.2f}%")
+            col3.metric("Total Cost (Day-Ahead)", f"{total_cost_day_ahead:.2f} EUR")
+
             st.write('### Imbalance Data Results:')
-            st.write(f'Total Savings (Imbalance): {total_savings_imbalance:.2f} EUR')
-            st.write(f'Percentage Savings (Imbalance): {percentage_savings_imbalance:.2f}%')
-            st.write(f'E-boiler Cost (Imbalance): {e_boiler_cost_imbalance:.2f} EUR')
-            st.write(f'Gas-boiler Cost (Imbalance): {gas_boiler_cost_imbalance:.2f} EUR')
-            st.write(f'Total Cost (Imbalance): {total_cost_imbalance:.2f} EUR')
+            col4, col5, col6 = st.columns(3)
+            col4.metric("Total Savings (Imbalance)", f"{total_savings_imbalance:.2f} EUR")
+            col5.metric("Percentage Savings (Imbalance)", f"{percentage_savings_imbalance:.2f}%")
+            col6.metric("Total Cost (Imbalance)", f"{total_cost_imbalance:.2f} EUR")
 
             # Display the data tables
             st.write('### Day-Ahead Data Table:')
@@ -295,5 +293,4 @@ def main():
             st.plotly_chart(fig_imbalance_power)
 
 if __name__ == '__main__':
-    main()
     main()
