@@ -262,7 +262,7 @@ def main():
             # Displaying the results with wider columns or st.write() to avoid truncation
             st.write('### Day-Ahead Data Results:')
             with st.container():
-                col1, col2, col3, col4, col5 = st.columns([1.5, 1.5, 1.5, 2, 2])
+                col1, col2, col3, col4, col5 = st.columns([1.6, 1.6, 1.6, 2.1, 2.1])
                 col1.write(f"**Total Savings:**\n{total_savings_day_ahead:,.2f} EUR")
                 col2.write(f"**Percentage Savings:**\n{percentage_savings_day_ahead:.2f}%")
                 col3.write(f"**Total Cost:**\n{total_cost_day_ahead:,.2f} EUR")
@@ -271,7 +271,7 @@ def main():
 
             st.write('### Imbalance Data Results:')
             with st.container():
-                col6, col7, col8, col9, col10 = st.columns([1.5, 1.5, 1.5, 2, 2])
+                col6, col7, col8, col9, col10 = st.columns([1.6, 1.6, 1.6, 2.1, 2.1])
                 col6.write(f"**Total Savings:**\n{total_savings_imbalance:,.2f} EUR")
                 col7.write(f"**Percentage Savings:**\n{percentage_savings_imbalance:.2f}%")
                 col8.write(f"**Total Cost:**\n{total_cost_imbalance:,.2f} EUR")
