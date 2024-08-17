@@ -229,7 +229,7 @@ def plot_power(day_ahead_data, imbalance_data):
 
 
 def main():
-  
+    st.title('Boiler Efficiency and Power Analysis')
     
     # Sidebar settings for user input
     st.sidebar.title('Settings')
@@ -263,26 +263,20 @@ def main():
             
             # Displaying the results in a visually appealing way
             st.write('### Day-Ahead Data Results:')
-            with st.container():
-                col1, col2, col3 = st.columns(3)
-                col1.metric("Total Savings (Day-Ahead)", f"{total_savings_day_ahead:.2f} EUR")
-                col2.metric("Percentage Savings (Day-Ahead)", f"{percentage_savings_day_ahead:.2f}%")
-                col3.metric("Total Cost (Day-Ahead)", f"{total_cost_day_ahead:.2f} EUR")
-                
-                col4, col5 = st.columns(2)
-                col4.metric("E-boiler Cost (Day-Ahead)", f"{e_boiler_cost_day_ahead:.2f} EUR")
-                col5.metric("Gas-boiler Cost (Day-Ahead)", f"{gas_boiler_cost_day_ahead:.2f} EUR")
+            col1, col2, col3, col4, col5 = st.columns(5)
+            col1.metric("Total Savings", f"{total_savings_day_ahead:.2f} EUR")
+            col2.metric("Percentage Savings", f"{percentage_savings_day_ahead:.2f}%")
+            col3.metric("Total Cost", f"{total_cost_day_ahead:.2f} EUR")
+            col4.metric("E-boiler Cost", f"{e_boiler_cost_day_ahead:.2f} EUR")
+            col5.metric("Gas-boiler Cost", f"{gas_boiler_cost_day_ahead:.2f} EUR")
 
             st.write('### Imbalance Data Results:')
-            with st.container():
-                col6, col7, col8 = st.columns(3)
-                col6.metric("Total Savings (Imbalance)", f"{total_savings_imbalance:.2f} EUR")
-                col7.metric("Percentage Savings (Imbalance)", f"{percentage_savings_imbalance:.2f}%")
-                col8.metric("Total Cost (Imbalance)", f"{total_cost_imbalance:.2f} EUR")
-                
-                col9, col10 = st.columns(2)
-                col9.metric("E-boiler Cost (Imbalance)", f"{e_boiler_cost_imbalance:.2f} EUR")
-                col10.metric("Gas-boiler Cost (Imbalance)", f"{gas_boiler_cost_imbalance:.2f} EUR")
+            col6, col7, col8, col9, col10 = st.columns(5)
+            col6.metric("Total Savings", f"{total_savings_imbalance:.2f} EUR")
+            col7.metric("Percentage Savings", f"{percentage_savings_imbalance:.2f}%")
+            col8.metric("Total Cost", f"{total_cost_imbalance:.2f} EUR")
+            col9.metric("E-boiler Cost", f"{e_boiler_cost_imbalance:.2f} EUR")
+            col10.metric("Gas-boiler Cost", f"{gas_boiler_cost_imbalance:.2f} EUR")
 
             # Display the data tables
             st.write('### Day-Ahead Data Table:')
