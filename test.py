@@ -262,7 +262,7 @@ def main():
             # Displaying the results with wider columns or st.write() to avoid truncation
             st.write('### Day-Ahead Data Results:')
             with st.container():
-                col1, col2, col3, col4, col5 = st.columns(3, 3, 3, 3, 3])
+                col1, col2, col3, col4, col5 = st.columns([3, 3, 3, 3, 3])
                 col1.write(f"**Total Savings:**\n{total_savings_day_ahead:,.2f} EUR")
                 col2.write(f"**Percentage Savings:**\n{percentage_savings_day_ahead:.2f}%")
                 col3.write(f"**Total Cost:**\n{total_cost_day_ahead:,.2f} EUR")
