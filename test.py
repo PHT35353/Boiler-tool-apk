@@ -146,52 +146,44 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 
+import plotly.graph_objs as go
+
 def plot_price(day_ahead_data, imbalance_data):
-    # Define empty figures
+    # Plot for Day-Ahead E-boiler and Gas-boiler costs
     day_ahead_fig = go.Figure()
+
+    # Convert time to datetime
+    day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
+
+    # Plot day-ahead E-boiler and Gas-boiler costs
+    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['E_Boiler_Cost_in_Euro'],
+                                       mode='lines', name='E-boiler Cost (Day-Ahead)', line=dict(color='blue')))
+    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['Gas_Boiler_Cost_in_Euro'],
+                                       mode='lines', name='Gas-boiler Cost (Day-Ahead)', line=dict(color='red', dash='dash')))
+
+    day_ahead_fig.update_layout(title='Day-Ahead E-boiler vs Gas-boiler Costs',
+                                xaxis_title='Time',
+                                yaxis_title='Cost (EUR)',
+                                xaxis=dict(tickformat='%Y-%m-%d'),
+                                legend=dict(x=0.5, y=-0.2, xanchor='center', yanchor='top'))
+
+    # Plot for Imbalance E-boiler and Gas-boiler costs
     imbalance_fig = go.Figure()
 
-    # Check if the required columns exist and have data for day-ahead data
-    if 'E_Boiler_Cost' in day_ahead_data.columns and 'Gas_Boiler_Cost' in day_ahead_data.columns:
-        if not day_ahead_data['E_Boiler_Cost'].empty and not day_ahead_data['Gas_Boiler_Cost'].empty:
-            # Plot for Day-Ahead E-boiler and Gas-boiler costs
-            day_ahead_fig = go.Figure()
+    # Convert time to datetime
+    imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
 
-            # Convert time to datetime
-            day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
+    # Plot imbalance E-boiler and Gas-boiler costs
+    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['E_Boiler_Cost_Imbalance_in_Euro'],
+                                       mode='lines', name='E-boiler Cost (Imbalance)', line=dict(color='blue')))
+    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['Gas_Boiler_Cost_Imbalance_in_Euro'],
+                                       mode='lines', name='Gas-boiler Cost (Imbalance)', line=dict(color='red', dash='dash')))
 
-            # Plot day-ahead E-boiler and Gas-boiler costs
-            day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['E_Boiler_Cost'], 
-                                               mode='lines', name='E-boiler Cost (Day-Ahead)', line=dict(color='blue')))
-            day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['Gas_Boiler_Cost'], 
-                                               mode='lines', name='Gas-boiler Cost (Day-Ahead)', line=dict(color='red', dash='dash')))
-
-            day_ahead_fig.update_layout(title='Day-Ahead E-boiler vs Gas-boiler Costs',
-                                        xaxis_title='Time',
-                                        yaxis_title='Cost (EUR)',
-                                        xaxis=dict(tickformat='%Y-%m-%d'),
-                                        legend=dict(x=1, y=1, xanchor='right', yanchor='top'))  # Moved legend
-
-    # Check if the required columns exist and have data for imbalance data
-    if 'E_Boiler_Cost_Imbalance' in imbalance_data.columns and 'Gas_Boiler_Cost_Imbalance' in imbalance_data.columns:
-        if not imbalance_data['E_Boiler_Cost_Imbalance'].empty and not imbalance_data['Gas_Boiler_Cost_Imbalance'].empty:
-            # Plot for Imbalance E-boiler and Gas-boiler costs
-            imbalance_fig = go.Figure()
-
-            # Convert time to datetime
-            imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
-
-            # Plot imbalance E-boiler and Gas-boiler costs
-            imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['E_Boiler_Cost_Imbalance'], 
-                                               mode='lines', name='E-boiler Cost (Imbalance)', line=dict(color='blue')))
-            imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['Gas_Boiler_Cost_Imbalance'], 
-                                               mode='lines', name='Gas-boiler Cost (Imbalance)', line=dict(color='red', dash='dash')))
-
-            imbalance_fig.update_layout(title='Imbalance E-boiler vs Gas-boiler Costs',
-                                        xaxis_title='Time',
-                                        yaxis_title='Cost (EUR)',
-                                        xaxis=dict(tickformat='%Y-%m-%d'),
-                                        legend=dict(x=1, y=1, xanchor='right', yanchor='top'))  # Moved legend
+    imbalance_fig.update_layout(title='Imbalance E-boiler vs Gas-boiler Costs',
+                                xaxis_title='Time',
+                                yaxis_title='Cost (EUR)',
+                                xaxis=dict(tickformat='%Y-%m-%d'),
+                                legend=dict(x=0.5, y=-0.2, xanchor='center', yanchor='top'))
 
     return day_ahead_fig, imbalance_fig
 
