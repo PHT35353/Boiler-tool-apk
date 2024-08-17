@@ -1,14 +1,19 @@
-import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
-import matplotlib.dates as mdates 
 from entsoe import EntsoePandasClient
 from decimal import Decimal
 from scipy.signal import find_peaks
+import plotly.graph_objs as go
 
 # required own api token from entsoe
 API_TOKEN = '0464a296-1b5d-4be6-a037-b3414de630f8'
 client = EntsoePandasClient(api_key=API_TOKEN)
+st.title('Boiler Efficiency and Power Analysis Tool')
+st.markdown("""
+This tool allows you to compare the efficiency and costs between E-boilers and Gas-boilers based on day-ahead and imbalance electricity prices.
+You can select the date range, country, gas price, and desired power to analyze the costs and determine which boiler is more cost-effective.
+The results are displayed in interactive plots, and a summary of the key findings is provided.
+""")
 
 # this function gets the day-ahead prices from entsoe
 def get_day_ahead_data(start, end, country_code):
@@ -139,82 +144,86 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
 
 
-def plot_price(day_ahead_data, imbalance_data, gas_price):
+
+# Updated function using Plotly
+def plot_price(day_ahead_data, imbalance_data):
     # Plot for Day-Ahead E-boiler and Gas-boiler costs
-    fig_day_ahead, ax_day_ahead = plt.subplots(figsize=(12, 6))
+    day_ahead_fig = go.Figure()
 
-    # Convert time to datetime and set as index
+    # Convert time to datetime
     day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
-    day_ahead_data.set_index('Time', inplace=True)
 
-    # Plot day-ahead E-boiler and Gas-boiler costs in blue and red
-    ax_day_ahead.plot(day_ahead_data.index, day_ahead_data['E_Boiler_Cost'], color='blue', label='E-boiler Cost (Day-Ahead)', linewidth=0.5, alpha=0.7)
-    ax_day_ahead.plot(day_ahead_data.index, day_ahead_data['Gas_Boiler_Cost'], color='red', label='Gas-boiler Cost (Day-Ahead)', linestyle='--', linewidth=0.5, alpha=0.7)
+    # Plot day-ahead E-boiler and Gas-boiler costs
+    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['E_Boiler_Cost'], 
+                                       mode='lines', name='E-boiler Cost (Day-Ahead)', line=dict(color='blue')))
+    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['Gas_Boiler_Cost'], 
+                                       mode='lines', name='Gas-boiler Cost (Day-Ahead)', line=dict(color='red', dash='dash')))
 
-    ax_day_ahead.set_title('Day-Ahead E-boiler vs Gas-boiler Costs')
-    ax_day_ahead.set_xlabel('Time')
-    ax_day_ahead.set_ylabel('Cost (EUR)')
-    ax_day_ahead.legend()
-
-    ax_day_ahead.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    plt.xticks(rotation=45, ha='right')
-    plt.tight_layout()
+    day_ahead_fig.update_layout(title='Day-Ahead E-boiler vs Gas-boiler Costs',
+                                xaxis_title='Time',
+                                yaxis_title='Cost (EUR)',
+                                xaxis=dict(tickformat='%Y-%m-%d'),
+                                legend=dict(x=0, y=1))
 
     # Plot for Imbalance E-boiler and Gas-boiler costs
-    fig_imbalance, ax_imbalance = plt.subplots(figsize=(12, 6))
+    imbalance_fig = go.Figure()
 
-    # Convert time to datetime and set as index
+    # Convert time to datetime
     imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
-    imbalance_data.set_index('Time', inplace=True)
 
-    # Plot imbalance E-boiler and Gas-boiler costs in blue and red
-    ax_imbalance.plot(imbalance_data.index, imbalance_data['E_Boiler_Cost_Imbalance'], color='blue', label='E-boiler Cost (Imbalance)', linewidth=0.5, alpha=0.7)
-    ax_imbalance.plot(imbalance_data.index, imbalance_data['Gas_Boiler_Cost_Imbalance'], color='red', label='Gas-boiler Cost (Imbalance)', linestyle='--', linewidth=0.5, alpha=0.7)
+    # Plot imbalance E-boiler and Gas-boiler costs
+    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['E_Boiler_Cost_Imbalance'], 
+                                       mode='lines', name='E-boiler Cost (Imbalance)', line=dict(color='blue')))
+    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['Gas_Boiler_Cost_Imbalance'], 
+                                       mode='lines', name='Gas-boiler Cost (Imbalance)', line=dict(color='red', dash='dash')))
 
-    ax_imbalance.set_title('Imbalance E-boiler vs Gas-boiler Costs')
-    ax_imbalance.set_xlabel('Time')
-    ax_imbalance.set_ylabel('Cost (EUR)')
-    ax_imbalance.legend()
+    imbalance_fig.update_layout(title='Imbalance E-boiler vs Gas-boiler Costs',
+                                xaxis_title='Time',
+                                yaxis_title='Cost (EUR)',
+                                xaxis=dict(tickformat='%Y-%m-%d'),
+                                legend=dict(x=0, y=1))
 
-    ax_imbalance.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    plt.xticks(rotation=45, ha='right')
-    plt.tight_layout()
-
-    return fig_day_ahead, fig_imbalance
+    return day_ahead_fig, imbalance_fig
 
 
 def plot_power(day_ahead_data, imbalance_data):
     # Calculate the sum of power for day-ahead data
     sum_e_boiler_day_ahead = day_ahead_data['E-boiler_Power_Day_Ahead'].sum()
     sum_gas_boiler_day_ahead = day_ahead_data['Gas-boiler_Power_Day_Ahead'].sum()
-    
-    # Create horizontal bar chart for day-ahead data
-    fig_day_ahead, ax_day_ahead = plt.subplots(figsize=(8, 4))
-    ax_day_ahead.barh(['E-boiler (Day-Ahead)', 'Gas-boiler (Day-Ahead)'],
-                      [sum_e_boiler_day_ahead, sum_gas_boiler_day_ahead],
-                      color=['blue', 'red'])
-    
-    ax_day_ahead.set_xlabel('Total Power (kW)')
-    ax_day_ahead.set_title('Total Power - Day-Ahead')
-    ax_day_ahead.set_xlim(0, max(sum_e_boiler_day_ahead, sum_gas_boiler_day_ahead) * 1.1)
-    plt.tight_layout()
+
+    # Create horizontal bar chart for day-ahead data using Plotly
+    day_ahead_fig = go.Figure()
+    day_ahead_fig.add_trace(go.Bar(
+        y=['E-boiler (Day-Ahead)', 'Gas-boiler (Day-Ahead)'],
+        x=[sum_e_boiler_day_ahead, sum_gas_boiler_day_ahead],
+        orientation='h',
+        marker=dict(color=['blue', 'red'])
+    ))
+
+    day_ahead_fig.update_layout(title='Total Power - Day-Ahead',
+                                xaxis_title='Total Power (kW)',
+                                yaxis_title='',
+                                xaxis=dict(range=[0, max(sum_e_boiler_day_ahead, sum_gas_boiler_day_ahead) * 1.1]))
 
     # Calculate the sum of power for imbalance data
     sum_e_boiler_imbalance = imbalance_data['E-boiler_Power_Imbalance'].sum()
     sum_gas_boiler_imbalance = imbalance_data['Gas-boiler_Power_Imbalance'].sum()
-    
-    # Create horizontal bar chart for imbalance data
-    fig_imbalance, ax_imbalance = plt.subplots(figsize=(8, 4))
-    ax_imbalance.barh(['E-boiler (Imbalance)', 'Gas-boiler (Imbalance)'],
-                      [sum_e_boiler_imbalance, sum_gas_boiler_imbalance],
-                      color=['blue', 'red'])
-    
-    ax_imbalance.set_xlabel('Total Power (kW)')
-    ax_imbalance.set_title('Total Power - Imbalance')
-    ax_imbalance.set_xlim(0, max(sum_e_boiler_imbalance, sum_gas_boiler_imbalance) * 1.1)
-    plt.tight_layout()
 
-    return fig_day_ahead, fig_imbalance
+    # Create horizontal bar chart for imbalance data using Plotly
+    imbalance_fig = go.Figure()
+    imbalance_fig.add_trace(go.Bar(
+        y=['E-boiler (Imbalance)', 'Gas-boiler (Imbalance)'],
+        x=[sum_e_boiler_imbalance, sum_gas_boiler_imbalance],
+        orientation='h',
+        marker=dict(color=['blue', 'red'])
+    ))
+
+    imbalance_fig.update_layout(title='Total Power - Imbalance',
+                                xaxis_title='Total Power (kW)',
+                                yaxis_title='',
+                                xaxis=dict(range=[0, max(sum_e_boiler_imbalance, sum_gas_boiler_imbalance) * 1.1]))
+
+    return day_ahead_fig, imbalance_fig
 
 
 
@@ -287,3 +296,26 @@ def main():
 
 if __name__ == '__main__':
     main()
+     # Display the price plots
+    fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data)
+    st.write('### Price Comparison:')
+    st.plotly_chart(fig_day_ahead_price)
+    st.plotly_chart(fig_imbalance_price)
+
+    # Display the power plots (if you want to convert these to Plotly as well)
+    fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data)
+    st.write('### Power Usage Peaks and Zeros:')
+    st.plotly_chart(fig_day_ahead_power)
+    st.plotly_chart(fig_imbalance_power)
+
+     # Display the price plots
+    fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data)
+    st.write('### Price Comparison:')
+    st.plotly_chart(fig_day_ahead_price)
+    st.plotly_chart(fig_imbalance_price)
+
+    # Display the power plots using Plotly
+    fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data)
+    st.write('### Power Usage Peaks and Zeros:')
+    st.plotly_chart(fig_day_ahead_power)
+    st.plotly_chart(fig_imbalance_power)
