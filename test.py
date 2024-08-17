@@ -229,12 +229,14 @@ def plot_power(day_ahead_data, imbalance_data):
 
 
 def main():
+    st.title('Boiler Efficiency and Power Analysis')
+    
     # Sidebar settings for user input
     st.sidebar.title('Settings')
     start_date = st.sidebar.date_input('Start date', pd.to_datetime('2023-01-01'))
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
     country_code = st.sidebar.text_input('Country code', 'NL')
-    gas_price = st.sidebar.number_input('Gas price in EUR/kWh', value=0.30 / 9.796)
+    gas_price = st.sidebar.number_input('Gas price per kWh', value=0.30 / 9.796)
     desired_power = st.sidebar.number_input('Desired Power (kW)', min_value=0.0, value=100.0, step=1.0)
     
     if st.sidebar.button('Get Data'):
@@ -261,24 +263,26 @@ def main():
             
             # Displaying the results in a visually appealing way
             st.write('### Day-Ahead Data Results:')
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Total Savings (Day-Ahead)", f"{total_savings_day_ahead:.2f} EUR")
-            col2.metric("Percentage Savings (Day-Ahead)", f"{percentage_savings_day_ahead:.2f}%")
-            col3.metric("Total Cost (Day-Ahead)", f"{total_cost_day_ahead:.2f} EUR")
+            with st.container():
+                col1, col2, col3 = st.columns(3)
+                col1.metric("Total Savings (Day-Ahead)", f"{total_savings_day_ahead:.2f} EUR")
+                col2.metric("Percentage Savings (Day-Ahead)", f"{percentage_savings_day_ahead:.2f}%")
+                col3.metric("Total Cost (Day-Ahead)", f"{total_cost_day_ahead:.2f} EUR")
+                
+                col4, col5 = st.columns(2)
+                col4.metric("E-boiler Cost (Day-Ahead)", f"{e_boiler_cost_day_ahead:.2f} EUR")
+                col5.metric("Gas-boiler Cost (Day-Ahead)", f"{gas_boiler_cost_day_ahead:.2f} EUR")
 
-            col4, col5 = st.columns(2)
-            col4.metric("E-boiler Cost (Day-Ahead)", f"{e_boiler_cost_day_ahead:.2f} EUR")
-            col5.metric("Gas-boiler Cost (Day-Ahead)", f"{gas_boiler_cost_day_ahead:.2f} EUR")
-            
             st.write('### Imbalance Data Results:')
-            col6, col7, col8 = st.columns(3)
-            col6.metric("Total Savings (Imbalance)", f"{total_savings_imbalance:.2f} EUR")
-            col7.metric("Percentage Savings (Imbalance)", f"{percentage_savings_imbalance:.2f}%")
-            col8.metric("Total Cost (Imbalance)", f"{total_cost_imbalance:.2f} EUR")
-
-            col9, col10 = st.columns(2)
-            col9.metric("E-boiler Cost (Imbalance)", f"{e_boiler_cost_imbalance:.2f} EUR")
-            col10.metric("Gas-boiler Cost (Imbalance)", f"{gas_boiler_cost_imbalance:.2f} EUR")
+            with st.container():
+                col6, col7, col8 = st.columns(3)
+                col6.metric("Total Savings (Imbalance)", f"{total_savings_imbalance:.2f} EUR")
+                col7.metric("Percentage Savings (Imbalance)", f"{percentage_savings_imbalance:.2f}%")
+                col8.metric("Total Cost (Imbalance)", f"{total_cost_imbalance:.2f} EUR")
+                
+                col9, col10 = st.columns(2)
+                col9.metric("E-boiler Cost (Imbalance)", f"{e_boiler_cost_imbalance:.2f} EUR")
+                col10.metric("Gas-boiler Cost (Imbalance)", f"{gas_boiler_cost_imbalance:.2f} EUR")
 
             # Display the data tables
             st.write('### Day-Ahead Data Table:')
@@ -295,7 +299,7 @@ def main():
             
             # Display the power plots
             fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data)
-            st.write('### Power Usage :')
+            st.write('### Power Usage Peaks and Zeros:')
             st.plotly_chart(fig_day_ahead_power)
             st.plotly_chart(fig_imbalance_power)
 
