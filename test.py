@@ -146,8 +146,6 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 
-import plotly.graph_objs as go
-
 def plot_price(day_ahead_data, imbalance_data):
     # Plot for Day-Ahead E-boiler and Gas-boiler costs
     day_ahead_fig = go.Figure()
@@ -165,7 +163,7 @@ def plot_price(day_ahead_data, imbalance_data):
                                 xaxis_title='Time',
                                 yaxis_title='Cost (EUR)',
                                 xaxis=dict(tickformat='%Y-%m-%d'),
-                                legend=dict(x=0.5, y=-0.2, xanchor='center', yanchor='top'))
+                                legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top'))
 
     # Plot for Imbalance E-boiler and Gas-boiler costs
     imbalance_fig = go.Figure()
@@ -183,7 +181,7 @@ def plot_price(day_ahead_data, imbalance_data):
                                 xaxis_title='Time',
                                 yaxis_title='Cost (EUR)',
                                 xaxis=dict(tickformat='%Y-%m-%d'),
-                                legend=dict(x=0.5, y=-0.2, xanchor='center', yanchor='top'))
+                                legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top'))
 
     return day_ahead_fig, imbalance_fig
 
