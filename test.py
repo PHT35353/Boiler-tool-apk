@@ -258,11 +258,11 @@ def main():
             st.error("No data available")
         else:
             # calculates the costs and power usage for both day-ahead and imbalance data
-            day_ahead_data = calculate_costs_day_ahead(day_ahead_data, gas_price)
-            imbalance_data = calculate_costs_imbalance(imbalance_data, gas_price)
+            day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
+            imbalance_data = imbalance_costs(imbalance_data, gas_price)
             
-            day_ahead_data = calculate_power_day_ahead(day_ahead_data, desired_power)
-            imbalance_data = calculate_power_imbalance(imbalance_data, desired_power)
+            day_ahead_data = day_ahead_power(day_ahead_data, desired_power)
+            imbalance_data = imbalance_power(imbalance_data, desired_power)
             
             # calculates the savings for both day-ahead and imbalance data
             total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
