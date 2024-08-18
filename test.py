@@ -113,7 +113,7 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     e_boiler_cost = data['E_Boiler_Cost_in_Euro'].sum()
     
     # Calculate savings
-    total_savings = Decimal(abs(e_boiler_cost))
+    total_savings = (abs(e_boiler_cost))
     percentage_savings = ((total_savings) / (gas_boiler_cost) * (100)) if gas_boiler_cost else (0)
     
     # Return the calculated savings, percentages, and costs
@@ -138,7 +138,7 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     e_boiler_cost = data['E_Boiler_Cost_Imbalance_in_Euro'].sum()
     
     # Calculate savings
-    total_savings = Decimal(abs(e_boiler_cost))
+    total_savings = (abs(e_boiler_cost))
     percentage_savings = ((total_savings) / (gas_boiler_cost) * (100)) if gas_boiler_cost else (0)
     
     # Return the calculated savings, percentages, and costs
