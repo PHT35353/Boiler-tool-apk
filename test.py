@@ -151,7 +151,8 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     total_savings = abs(e_boiler_cost)
     percentage_savings = (total_savings / gas_boiler_cost * 100) if gas_boiler_cost else 0
     
-    return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
+    # Return the calculated values and the modified DataFrame
+    return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, data
 
 
 # this function plots the price graph of day-ahead and imbalance data with plotly
@@ -250,7 +251,6 @@ def main():
     gas_price = st.sidebar.number_input('Gas price EUR/kWh', value=0.30 / 9.796)
     desired_power = st.sidebar.number_input('Desired Power (kWh)', min_value=0.0, value=100.0, step=1.0)
     
-    # executes the code when Get data is clicked on
     if st.sidebar.button('Get Data'):
         day_ahead_data = get_day_ahead_data(start_date, end_date, country_code)
         imbalance_data = get_imbalance_data(start_date, end_date, country_code)
@@ -258,21 +258,24 @@ def main():
         if day_ahead_data.empty or imbalance_data.empty:
             st.error("No data available")
         else:
-            # calculates the costs and power usage for both day-ahead and imbalance data
+            # Calculate the costs and power usage for both day-ahead and imbalance data
             day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
             imbalance_data = imbalance_costs(imbalance_data, gas_price)
             
             day_ahead_data = day_ahead_power(day_ahead_data, desired_power)
             imbalance_data = imbalance_power(imbalance_data, desired_power)
             
-            # calculates the savings for both day-ahead and imbalance data
+            # Calculate savings for both day-ahead and imbalance data
             total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
-            total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
+            total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
             
-            total_cost_day_ahead = (gas_boiler_cost_day_ahead) - (abs(e_boiler_cost_day_ahead))
-            total_cost_imbalance = (gas_boiler_cost_imbalance) - (abs(e_boiler_cost_imbalance))
+            total_cost_day_ahead = gas_boiler_cost_day_ahead - abs(e_boiler_cost_day_ahead)
+            total_cost_imbalance = gas_boiler_cost_imbalance - abs(e_boiler_cost_imbalance)
             
-            # displays the results in a better looking way
+            # Drop the 'Time_Diff_Minutes' column before displaying
+            imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
+
+            # Display the results
             st.write('### Day-Ahead Data Results:')
             with st.container():
                 col1, col2, col3, col4, col5 = st.columns([10, 10, 10, 10, 10])
@@ -291,21 +294,21 @@ def main():
                 col9.write(f"**E-boiler Cost:**\n{e_boiler_cost_imbalance:,.2f} EUR")
                 col10.write(f"**Gas-boiler Cost:**\n{gas_boiler_cost_imbalance:,.2f} EUR")
 
-            # for showing the data tables
+            # Show the data tables
             st.write('### Day-Ahead Data Table:')
             st.dataframe(day_ahead_data)
 
             st.write('### Imbalance Data Table:')
-            st.dataframe(imbalance_data)
+            st.dataframe(imbalance_data_display)
             
-            # showing the price plots
-            fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data)
+            # Show the price plots
+            fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display)
             st.write('### Price Comparison:')
             st.plotly_chart(fig_day_ahead_price)
             st.plotly_chart(fig_imbalance_price)
             
-            # showing the power plots
-            fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data)
+            # Show the power plots
+            fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
             st.write('### Power Usage:')
             st.plotly_chart(fig_day_ahead_power)
             st.plotly_chart(fig_imbalance_power)
