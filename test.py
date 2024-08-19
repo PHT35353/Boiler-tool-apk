@@ -133,18 +133,22 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
 
 def calculate_savings_imbalance(data, gas_price, desired_power):
-    gas_price_Mwh = gas_price * 1000 # Convert EUR/kWh to EUR/MWh
+    # Convert gas price from EUR/kWh to EUR/MWh
+    gas_price_Mwh = gas_price * 1000  # EUR/MWh
     
     # Ensure that time differences are calculated and converted to hours
     data['Time_Diff_Hours'] = data['Time_Diff_Minutes'] / 60.0
     
+    # Convert desired power from kW to MW
+    desired_power_Mwh = desired_power / 1000.0  # MW
+    
     # Calculate the gas boiler cost
-    data['Gas_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power * row['Time_Diff_Hours']) * gas_price_Mwh 
+    data['Gas_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power_Mwh * row['Time_Diff_Hours']) * gas_price_Mwh 
                                                    if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0, axis=1)
     gas_boiler_cost = data['Gas_Boiler_Cost_Imbalance_in_Euro'].sum()
     
     # Calculate the e-boiler cost
-    data['E_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power * row['Time_Diff_Hours']) * row['Imbalance_Price_EUR_per_MWh'] 
+    data['E_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power_Mwh * row['Time_Diff_Hours']) * row['Imbalance_Price_EUR_per_MWh'] 
                                                  if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0, axis=1)
     e_boiler_cost = data['E_Boiler_Cost_Imbalance_in_Euro'].sum()
     
@@ -312,8 +316,6 @@ def main():
             st.plotly_chart(fig_day_ahead_power)
             st.plotly_chart(fig_imbalance_power)
 
-            st.write('### Debug: Imbalance Data with Calculations')
-            st.write(imbalance_data.head())  # Display the first few rows with the calculated columns
-
+           
 if __name__ == '__main__':
     main()
