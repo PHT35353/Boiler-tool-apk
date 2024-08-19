@@ -95,14 +95,8 @@ def day_ahead_power(data, desired_power):
 
 # this function adds the clients desired power as an extra column and it shows the power usage of the efficient boiler from the imbalance market only
 def imbalance_power(data, desired_power):
-    # Calculate the time difference between consecutive data points in minutes
-    data['Time_Diff_Minutes'] = data['Time'].diff().dt.total_seconds() / 60
-    
-    # Adjust the power based on the time difference
-    data['E-boiler_Power_Imbalance'] = data.apply(lambda x: desired_power * (x['Time_Diff_Minutes'] / 60) 
-                                                  if x['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0, axis=1)
-    data['Gas-boiler_Power_Imbalance'] = data.apply(lambda x: desired_power * (x['Time_Diff_Minutes'] / 60) 
-                                                    if x['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0, axis=1)
+    data['E-boiler_Power_Imbalance'] = data.apply(lambda x: desired_power if x['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0, axis=1)
+    data['Gas-boiler_Power_Imbalance'] = data.apply(lambda x: desired_power if x['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0, axis=1)
     return data
 
 # this function calculates the total saving price and precentage of the day-ahead market
@@ -140,12 +134,13 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     desired_power_Mwh = desired_power / 1000.0  # MW
     
    # Calculate the cost dynamically based on time difference
-    data['Gas_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power_Mwh * (row['Time_Diff_Minutes'] / 60)) * gas_price_Mwh 
+    data['Gas_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power_Mwh * (('Time_Diff_Minutes') / 60)) * gas_price_Mwh 
                                                    if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0, axis=1)
     gas_boiler_cost = data['Gas_Boiler_Cost_Imbalance_in_Euro'].sum()
     
-    data['E_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power_Mwh * (row['Time_Diff_Minutes'] / 60)) * row['Imbalance_Price_EUR_per_MWh'] 
-                                                 if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0, axis=1)
+     data['E_Boiler_Cost_in_Euro'] = data.apply(lambda row: desired_power_Mwh * (row['Day-Ahead_Price_EUR_per_MWh']) 
+                                       if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else (0), axis=1)
+
     e_boiler_cost = data['E_Boiler_Cost_Imbalance_in_Euro'].sum()
     
     # Calculate total savings and percentage savings
