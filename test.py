@@ -140,11 +140,11 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     desired_power_Mwh = desired_power / 1000.0  # MW
     
    # Calculate the cost dynamically based on time difference
-    data['Gas_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power * (row['Time_Diff_Minutes'] / 60)) * gas_price_Mwh 
+    data['Gas_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power_Mwh * (row['Time_Diff_Minutes'] / 60)) * gas_price_Mwh 
                                                    if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0, axis=1)
     gas_boiler_cost = data['Gas_Boiler_Cost_Imbalance_in_Euro'].sum()
     
-    data['E_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power * (row['Time_Diff_Minutes'] / 60)) * row['Imbalance_Price_EUR_per_MWh'] 
+    data['E_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power_Mwh * (row['Time_Diff_Minutes'] / 60)) * row['Imbalance_Price_EUR_per_MWh'] 
                                                  if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0, axis=1)
     e_boiler_cost = data['E_Boiler_Cost_Imbalance_in_Euro'].sum()
     
