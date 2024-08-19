@@ -130,6 +130,11 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     # Calculate the time difference in minutes between consecutive rows
     data['Time_Diff_Minutes'] = data['Time'].diff().dt.total_seconds() / 60.0
     
+    # Set the first row's time difference to a default value (e.g., 15 minutes or the mean of other time differences)
+    if data['Time_Diff_Minutes'].isnull().any():
+        default_time_diff = data['Time_Diff_Minutes'].mean()  # You can change this to 15 if 15 minutes is a common interval
+        data['Time_Diff_Minutes'].fillna(default_time_diff, inplace=True)
+    
     # Convert gas price from EUR/kWh to EUR/MWh
     gas_price_Mwh = gas_price * 1000  # EUR/MWh
     
