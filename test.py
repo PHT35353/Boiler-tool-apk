@@ -133,7 +133,7 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost
 
 def calculate_savings_imbalance(data, gas_price, desired_power):
-    gas_price_Mwh = gas_price   # Convert EUR/kWh to EUR/MWh
+    gas_price_Mwh = gas_price * 1000 # Convert EUR/kWh to EUR/MWh
     
     # Ensure that time differences are calculated and converted to hours
     data['Time_Diff_Hours'] = data['Time_Diff_Minutes'] / 60.0
@@ -311,6 +311,9 @@ def main():
             st.write('### Power Usage:')
             st.plotly_chart(fig_day_ahead_power)
             st.plotly_chart(fig_imbalance_power)
+
+            st.write('### Debug: Imbalance Data with Calculations')
+            st.write(imbalance_data.head())  # Display the first few rows with the calculated columns
 
 if __name__ == '__main__':
     main()
