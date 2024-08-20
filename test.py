@@ -276,28 +276,16 @@ def main():
                     # Read the Excel file
                     uploaded_data = pd.read_excel(uploaded_file)
 
-                    # Manually detect time and power columns based on common patterns in your file
-                    time_column = None
-                    power_column = None
+                    # Since the file has a specific format, let's manually identify the correct columns
+                    time_column = uploaded_data.columns[0]  # Assuming the first column is Time
+                    power_column = uploaded_data.columns[1]  # Assuming the second column is Desired Power
 
-                    # Iterate through the columns to find a datetime-like column and a numeric column
-                    for col in uploaded_data.columns:
-                        if pd.api.types.is_datetime64_any_dtype(uploaded_data[col]) or "time" in col.lower():
-                            time_column = col
-                        elif pd.api.types.is_numeric_dtype(uploaded_data[col]) or "power" in col.lower():
-                            power_column = col
-
-                    # Handle the case where the columns are not found automatically
-                    if not time_column or not power_column:
-                        st.error("Could not automatically detect the time and power columns. Please ensure your data contains datetime and numeric columns.")
-                        return
-                    
                     # Convert to datetime and merge with the main datasets
                     uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column], errors='coerce')
                     if uploaded_data[time_column].isnull().all():
                         st.error("The time column could not be parsed as dates.")
                         return
-                    
+
                     day_ahead_data = pd.merge(day_ahead_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
                     imbalance_data = pd.merge(imbalance_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
 
@@ -306,9 +294,7 @@ def main():
                     imbalance_data['Desired Power'] = imbalance_data[power_column].fillna(method='ffill').fillna(method='bfill')
                 except Exception as e:
                     st.error(f"Error processing the uploaded file: {str(e)}")
-                    # Fallback to manual input
-                    day_ahead_data['Desired Power'] = desired_power
-                    imbalance_data['Desired Power'] = desired_power
+                    return
             else:
                 day_ahead_data['Desired Power'] = desired_power
                 imbalance_data['Desired Power'] = desired_power
