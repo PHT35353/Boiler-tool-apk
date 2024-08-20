@@ -255,48 +255,53 @@ def main():
     gas_price = st.sidebar.number_input('Gas price EUR/kWh', value=0.30 / 9.796)
     desired_power = st.sidebar.number_input('Desired Power (kWh)', min_value=0.0, value=100.0, step=1.0)
     uploaded_file = st.sidebar.file_uploader("Upload your desired power data (Excel file)", type=["xlsx", "xls"])
-    
+
     if st.sidebar.button('Get Data'):
         day_ahead_data = get_day_ahead_data(start_date, end_date, country_code)
         imbalance_data = get_imbalance_data(start_date, end_date, country_code)
-        
+
         if day_ahead_data.empty or imbalance_data.empty:
             st.error("No data available")
         else:
             # Process uploaded file if available, otherwise use the desired power input
             if uploaded_file is not None:
-                # Read the Excel file
-                uploaded_data = pd.read_excel(uploaded_file)
-                
-                # Ensure the file has the correct structure (e.g., 'Time' and 'Desired Power' columns)
-                if 'Time' in uploaded_data.columns and 'Desired Power' in uploaded_data.columns:
-                    uploaded_data['Time'] = pd.to_datetime(uploaded_data['Time'])
-                    # Merge with day-ahead and imbalance data based on time
-                    day_ahead_data = pd.merge(day_ahead_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
-                    imbalance_data = pd.merge(imbalance_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
-                    # Use the uploaded 'Desired Power' data
-                    day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
-                    imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
-                else:
-                    st.error("Uploaded file must contain 'Time' and 'Desired Power' columns")
+                try:
+                    # Attempt to read the Excel file
+                    uploaded_data = pd.read_excel(uploaded_file)
+
+                    # Ensure the file has the correct structure (e.g., 'Time' and 'Desired Power' columns)
+                    if 'Time' in uploaded_data.columns and 'Desired Power' in uploaded_data.columns:
+                        uploaded_data['Time'] = pd.to_datetime(uploaded_data['Time'])
+                        # Merge with day-ahead and imbalance data based on time
+                        day_ahead_data = pd.merge(day_ahead_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
+                        imbalance_data = pd.merge(imbalance_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
+                        # Use the uploaded 'Desired Power' data
+                        day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
+                        imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
+                    else:
+                        st.error("Uploaded file must contain 'Time' and 'Desired Power' columns")
+                        return
+                except Exception as e:
+                    st.error(f"Error reading the uploaded file: {str(e)}")
+                    return
             else:
                 day_ahead_data['Desired Power'] = desired_power
                 imbalance_data['Desired Power'] = desired_power
-            
+
             # Calculate the costs and power usage for both day-ahead and imbalance data
             day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
             imbalance_data = imbalance_costs(imbalance_data, gas_price)
-            
+
             day_ahead_data = day_ahead_power(day_ahead_data)
             imbalance_data = imbalance_power(imbalance_data)
-            
+
             # Calculate savings for both day-ahead and imbalance data
             total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
             total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
-            
+
             total_cost_day_ahead = gas_boiler_cost_day_ahead - abs(e_boiler_cost_day_ahead)
             total_cost_imbalance = gas_boiler_cost_imbalance - abs(e_boiler_cost_imbalance)
-            
+
             # Drop the 'Time_Diff_Minutes' column before displaying
             imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
 
@@ -325,13 +330,13 @@ def main():
 
             st.write('### Imbalance Data Table:')
             st.dataframe(imbalance_data_display)
-            
+
             # Show the price plots
             fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display)
             st.write('### Price Comparison:')
             st.plotly_chart(fig_day_ahead_price)
             st.plotly_chart(fig_imbalance_price)
-            
+
             # Show the power plots
             fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
             st.write('### Power Usage:')
@@ -340,4 +345,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
