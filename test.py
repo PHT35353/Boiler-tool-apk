@@ -253,6 +253,20 @@ def plot_power(day_ahead_data, imbalance_data):
     return day_ahead_fig, imbalance_fig
 
 
+
+def validate_desired_power_column(data):
+    """Validates the Desired Power column in the uploaded data."""
+    if 'Desired Power' not in data.columns:
+        st.error("The uploaded file does not contain a 'Desired Power' column.")
+        return False
+
+    # Check for missing or non-numeric values in the 'Desired Power' column
+    if data['Desired Power'].isnull().any() or not pd.api.types.is_numeric_dtype(data['Desired Power']):
+        st.error("Desired Power column contains invalid or missing values.")
+        return False
+    
+    return True
+
 def main():
     # Sidebar settings
     st.sidebar.title('Settings')
@@ -266,80 +280,56 @@ def main():
     if st.sidebar.button('Get Data'):
         day_ahead_data = get_day_ahead_data(start_date, end_date, country_code)
         imbalance_data = get_imbalance_data(start_date, end_date, country_code)
-
+        
         if day_ahead_data.empty or imbalance_data.empty:
             st.error("No data available")
         else:
+            # Process uploaded file if available, otherwise use the desired power input
             if uploaded_file is not None:
                 try:
                     # Read the Excel file
                     uploaded_data = pd.read_excel(uploaded_file)
+                    
+                    # Automatically detect time and power columns
+                    time_column, power_column = detect_time_and_power_columns(uploaded_data)
+                    
+                    # Rename columns to standard names
+                    uploaded_data.rename(columns={time_column: 'Time', power_column: 'Desired Power'}, inplace=True)
+                    uploaded_data['Time'] = pd.to_datetime(uploaded_data['Time'], errors='coerce')
 
-                    # Assume first column is time and second is power, adjust as needed
-                    time_column = uploaded_data.columns[0]
-                    power_column = uploaded_data.columns[1]
-
-                    # Filter out rows with non-numeric "Desired Power" values
-                    uploaded_data = uploaded_data[pd.to_numeric(uploaded_data[power_column], errors='coerce').notnull()]
-
-                    # Convert the time column to datetime with error handling
-                    uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column], errors='coerce', dayfirst=True)
-
-                    # Check for any issues with the datetime conversion
-                    if uploaded_data[time_column].isnull().any():
-                        # Identify the problematic rows
-                        problematic_rows = uploaded_data[uploaded_data[time_column].isnull()]
-                        st.error(f"The time column could not be parsed as dates. Problematic rows: {problematic_rows}")
+                    # Validate 'Desired Power' column
+                    if not validate_desired_power_column(uploaded_data):
                         return
 
                     # Merge with day-ahead and imbalance data based on time
-                    day_ahead_data = pd.merge(day_ahead_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
-                    imbalance_data = pd.merge(imbalance_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
-
-                    # Fill missing values in the 'Desired Power' column
-                    day_ahead_data['Desired Power'] = pd.to_numeric(day_ahead_data[power_column], errors='coerce').fillna(method='ffill').fillna(method='bfill')
-                    imbalance_data['Desired Power'] = pd.to_numeric(imbalance_data[power_column], errors='coerce').fillna(method='ffill').fillna(method='bfill')
-
-                    # Drop unnecessary columns after merge
-                    day_ahead_data = day_ahead_data.drop(columns=[time_column, power_column])
-                    imbalance_data = imbalance_data.drop(columns=[time_column, power_column])
+                    day_ahead_data = pd.merge(day_ahead_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
+                    imbalance_data = pd.merge(imbalance_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
+                    
+                    # Fill missing values
+                    day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
+                    imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
 
                 except Exception as e:
-                    st.error(f"Error processing the uploaded file: {str(e)}")
+                    st.error(f"Error processing the uploaded file: {e}")
                     return
             else:
                 day_ahead_data['Desired Power'] = desired_power
                 imbalance_data['Desired Power'] = desired_power
-
-            # Validate that 'Desired Power' has been correctly populated
-            if day_ahead_data['Desired Power'].isnull().any() or imbalance_data['Desired Power'].isnull().any():
-                st.error("Desired Power column contains invalid or missing values.")
-                st.write("Here is a preview of the Day-Ahead data for debugging:")
-                st.dataframe(day_ahead_data)
-                st.write("Here is a preview of the Imbalance data for debugging:")
-                st.dataframe(imbalance_data)
-                return
-
-            # Ensure power columns are numeric to avoid TypeErrors
-            day_ahead_data['Gas-boiler_Power_Day_Ahead'] = pd.to_numeric(day_ahead_data['Gas-boiler_Power_Day_Ahead'], errors='coerce')
-            day_ahead_data['E-boiler_Power_Day_Ahead'] = pd.to_numeric(day_ahead_data['E-boiler_Power_Day_Ahead'], errors='coerce')
-            imbalance_data['Gas-boiler_Power_Imbalance'] = pd.to_numeric(imbalance_data['Gas-boiler_Power_Imbalance'], errors='coerce')
-            imbalance_data['E-boiler_Power_Imbalance'] = pd.to_numeric(imbalance_data['E-boiler_Power_Imbalance'], errors='coerce')
-
+            
             # Calculate the costs and power usage for both day-ahead and imbalance data
             day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
             imbalance_data = imbalance_costs(imbalance_data, gas_price)
-
+            
             day_ahead_data = day_ahead_power(day_ahead_data)
             imbalance_data = imbalance_power(imbalance_data)
-
+            
             # Calculate savings for both day-ahead and imbalance data
             total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
             total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
-
+            
             total_cost_day_ahead = gas_boiler_cost_day_ahead - abs(e_boiler_cost_day_ahead)
             total_cost_imbalance = gas_boiler_cost_imbalance - abs(e_boiler_cost_imbalance)
-
+            
             # Drop the 'Time_Diff_Minutes' column before displaying
             imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
 
@@ -368,13 +358,13 @@ def main():
 
             st.write('### Imbalance Data Table:')
             st.dataframe(imbalance_data_display)
-
+            
             # Show the price plots
-            fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
+            fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display)
             st.write('### Price Comparison:')
             st.plotly_chart(fig_day_ahead_price)
             st.plotly_chart(fig_imbalance_price)
-
+            
             # Show the power plots
             fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
             st.write('### Power Usage:')
