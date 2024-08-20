@@ -314,7 +314,17 @@ def main():
             # Validate that 'Desired Power' has been correctly populated
             if day_ahead_data['Desired Power'].isnull().any() or imbalance_data['Desired Power'].isnull().any():
                 st.error("Desired Power column contains invalid or missing values.")
+                st.write("Here is a preview of the Day-Ahead data for debugging:")
+                st.dataframe(day_ahead_data)
+                st.write("Here is a preview of the Imbalance data for debugging:")
+                st.dataframe(imbalance_data)
                 return
+
+            # Ensure power columns are numeric to avoid TypeErrors
+            day_ahead_data['Gas-boiler_Power_Day_Ahead'] = pd.to_numeric(day_ahead_data['Gas-boiler_Power_Day_Ahead'], errors='coerce')
+            day_ahead_data['E-boiler_Power_Day_Ahead'] = pd.to_numeric(day_ahead_data['E-boiler_Power_Day_Ahead'], errors='coerce')
+            imbalance_data['Gas-boiler_Power_Imbalance'] = pd.to_numeric(imbalance_data['Gas-boiler_Power_Imbalance'], errors='coerce')
+            imbalance_data['E-boiler_Power_Imbalance'] = pd.to_numeric(imbalance_data['E-boiler_Power_Imbalance'], errors='coerce')
 
             # Calculate the costs and power usage for both day-ahead and imbalance data
             day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
@@ -322,12 +332,6 @@ def main():
 
             day_ahead_data = day_ahead_power(day_ahead_data)
             imbalance_data = imbalance_power(imbalance_data)
-
-            # Ensure power columns are numeric to avoid TypeErrors
-            day_ahead_data['Gas-boiler_Power_Day_Ahead'] = pd.to_numeric(day_ahead_data['Gas-boiler_Power_Day_Ahead'], errors='coerce')
-            day_ahead_data['E-boiler_Power_Day_Ahead'] = pd.to_numeric(day_ahead_data['E-boiler_Power_Day_Ahead'], errors='coerce')
-            imbalance_data['Gas-boiler_Power_Imbalance'] = pd.to_numeric(imbalance_data['Gas-boiler_Power_Imbalance'], errors='coerce')
-            imbalance_data['E-boiler_Power_Imbalance'] = pd.to_numeric(imbalance_data['E-boiler_Power_Imbalance'], errors='coerce')
 
             # Calculate savings for both day-ahead and imbalance data
             total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
