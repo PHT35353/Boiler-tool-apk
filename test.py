@@ -286,9 +286,9 @@ def main():
                         st.error("The time column could not be parsed as dates.")
                         return
 
-                    # Ensure time zone alignment
+                    # Ensure time zone alignment with the handling of ambiguous times
                     if day_ahead_data['Time'].dt.tz is not None:
-                        uploaded_data[time_column] = uploaded_data[time_column].dt.tz_localize(day_ahead_data['Time'].dt.tz)
+                        uploaded_data[time_column] = uploaded_data[time_column].dt.tz_localize(day_ahead_data['Time'].dt.tz, ambiguous='NaT')
                     else:
                         uploaded_data[time_column] = uploaded_data[time_column].dt.tz_localize(None)
 
