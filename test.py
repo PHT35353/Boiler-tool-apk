@@ -255,7 +255,6 @@ def plot_power(day_ahead_data, imbalance_data):
 
     return day_ahead_fig, imbalance_fig
 
-
 def main():
     # This function makes the sidebar of settings
     st.sidebar.title('Settings')
@@ -295,6 +294,7 @@ def main():
                     st.error(f"Error reading the uploaded file: {str(e)}")
                     return
             else:
+                # If no file is uploaded, use the manually entered desired power
                 day_ahead_data['Desired Power'] = desired_power
                 imbalance_data['Desired Power'] = desired_power
 
@@ -355,3 +355,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+  
