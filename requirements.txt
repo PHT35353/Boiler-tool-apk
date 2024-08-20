@@ -3,3 +3,4 @@ entsoe-py
 streamlit
 matplotlib
 plotly
+openpyxl
