@@ -275,40 +275,41 @@ def main():
                     # Read the Excel file
                     uploaded_data = pd.read_excel(uploaded_file)
 
-                    # Manually identify the correct columns (assuming first is time, second is power)
+                    # Assume first column is time and second is power, adjust as needed
                     time_column = uploaded_data.columns[0]
                     power_column = uploaded_data.columns[1]
 
-                    # Convert the time column to datetime and align time zones
+                    # Convert the time column to datetime
                     uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column], errors='coerce')
-                    if uploaded_data[time_column].isnull().all():
+                    
+                    # Check for any issues with the datetime conversion
+                    if uploaded_data[time_column].isnull().any():
                         st.error("The time column could not be parsed as dates.")
                         return
-
-                    # Ensure time zone alignment with handling of ambiguous times
-                    if day_ahead_data['Time'].dt.tz is not None:
-                        uploaded_data[time_column] = uploaded_data[time_column].dt.tz_localize(day_ahead_data['Time'].dt.tz, ambiguous='NaT')
-                    else:
-                        uploaded_data[time_column] = uploaded_data[time_column].dt.tz_localize(None)
 
                     # Merge with day-ahead and imbalance data based on time
                     day_ahead_data = pd.merge(day_ahead_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
                     imbalance_data = pd.merge(imbalance_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
 
-                    # Use the uploaded 'Desired Power' data, ensuring no missing values
+                    # Fill missing values in the 'Desired Power' column
                     day_ahead_data['Desired Power'] = pd.to_numeric(day_ahead_data[power_column], errors='coerce').fillna(method='ffill').fillna(method='bfill')
                     imbalance_data['Desired Power'] = pd.to_numeric(imbalance_data[power_column], errors='coerce').fillna(method='ffill').fillna(method='bfill')
 
                     # Drop unnecessary columns after merge
                     day_ahead_data = day_ahead_data.drop(columns=[time_column, power_column])
                     imbalance_data = imbalance_data.drop(columns=[time_column, power_column])
-                    
+
                 except Exception as e:
                     st.error(f"Error processing the uploaded file: {str(e)}")
                     return
             else:
                 day_ahead_data['Desired Power'] = desired_power
                 imbalance_data['Desired Power'] = desired_power
+
+            # Validate that 'Desired Power' has been correctly populated
+            if day_ahead_data['Desired Power'].isnull().any() or imbalance_data['Desired Power'].isnull().any():
+                st.error("Desired Power column contains invalid or missing values.")
+                return
 
             # Calculate the costs and power usage for both day-ahead and imbalance data
             day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
