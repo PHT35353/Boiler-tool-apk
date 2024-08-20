@@ -272,29 +272,38 @@ def main():
         else:
             # Process uploaded file if available, otherwise use the desired power input
             if uploaded_file is not None:
-                # Read the Excel file
-                uploaded_data = pd.read_excel(uploaded_file)
-                
-                # Automatically detect the time and power columns
-                time_column = None
-                power_column = None
-                
-                for col in uploaded_data.columns:
-                    if pd.api.types.is_datetime64_any_dtype(uploaded_data[col]):
-                        time_column = col
-                    elif pd.api.types.is_numeric_dtype(uploaded_data[col]):
-                        power_column = col
-                
-                if time_column and power_column:
-                    uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column])
-                    # Merge with day-ahead and imbalance data based on detected time and power columns
-                    day_ahead_data = pd.merge(day_ahead_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
-                    imbalance_data = pd.merge(imbalance_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
-                    # Use the detected 'Desired Power' data
-                    day_ahead_data['Desired Power'] = day_ahead_data[power_column].fillna(method='ffill').fillna(method='bfill')
-                    imbalance_data['Desired Power'] = imbalance_data[power_column].fillna(method='ffill').fillna(method='bfill')
-                else:
-                    st.error("Could not automatically detect the time and power columns. Please ensure your data contains datetime and numeric columns.")
+                try:
+                    # Read the Excel file
+                    uploaded_data = pd.read_excel(uploaded_file)
+                    
+                    # Automatically detect the time and power columns
+                    time_column = None
+                    power_column = None
+                    
+                    for col in uploaded_data.columns:
+                        if pd.api.types.is_datetime64_any_dtype(uploaded_data[col]):
+                            time_column = col
+                        elif pd.api.types.is_numeric_dtype(uploaded_data[col]):
+                            power_column = col
+                    
+                    if time_column and power_column:
+                        uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column])
+                        # Merge with day-ahead and imbalance data based on detected time and power columns
+                        day_ahead_data = pd.merge(day_ahead_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
+                        imbalance_data = pd.merge(imbalance_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
+                        # Use the detected 'Desired Power' data
+                        day_ahead_data['Desired Power'] = day_ahead_data[power_column].fillna(method='ffill').fillna(method='bfill')
+                        imbalance_data['Desired Power'] = imbalance_data[power_column].fillna(method='ffill').fillna(method='bfill')
+                    else:
+                        st.error("Could not automatically detect the time and power columns. Please ensure your data contains datetime and numeric columns.")
+                        # Use manually input desired power if detection fails
+                        day_ahead_data['Desired Power'] = desired_power
+                        imbalance_data['Desired Power'] = desired_power
+                except Exception as e:
+                    st.error(f"Error processing the uploaded file: {str(e)}")
+                    # Fallback to manual input
+                    day_ahead_data['Desired Power'] = desired_power
+                    imbalance_data['Desired Power'] = desired_power
             else:
                 day_ahead_data['Desired Power'] = desired_power
                 imbalance_data['Desired Power'] = desired_power
