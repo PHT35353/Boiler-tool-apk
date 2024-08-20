@@ -10,12 +10,22 @@ API_TOKEN = '0464a296-1b5d-4be6-a037-b3414de630f8'
 client = EntsoePandasClient(api_key=API_TOKEN)
 st.title('Boiler Efficiency and Power Analysis Tool')
 # the requested explanation which elaborates how to use the apk
-st.markdown("""How it works?
+st.markdown("""How it Works:
 
-This tool allows you to compare the efficiency and costs between E-boilers and Gas-boilers based on day-ahead and imbalance electricity prices.
-You can select the date range in start date and end date section, the country in country code section, the gas price in gas price EUR/kwh section and your desired power that you wish to get out of these boilers in the desired power section to analyze the costs and determine which boiler is more cost-effective.
-The results are displayed in interactive plots, and a summary of the key findings is provided. When the tool is running you can see a logo on top right next to stop that indicates that the program is running.
-If you wish to stop the program from running then you can click the stop button at the top right. It is also noted that the longer the selected time periode is the more time it takes to run the program. If you wish to change the theme or enter wide mode then click on the three dots at top right and click on settings.""")
+	•	Purpose: Compare the efficiency and costs of E-boilers vs. Gas-boilers based on day-ahead and imbalance electricity prices.
+	•	Inputs:
+	•	Date Range: Select start and end dates.
+	•	Country: Enter the country code.
+	•	Gas Price: Input the gas price (EUR/kWh).
+	•	Desired Power: Enter your desired power output (kWh).
+	•	Outputs:
+	•	Results are shown in interactive plots with a summary of key findings.
+	•	Running the Tool:
+	•	A running icon appears next to the “Stop” button in the top right while the tool is processing.
+	•	Stopping the Tool:
+	•	Click “Stop” in the top right to stop the tool.
+	•	Note: Longer date ranges may increase processing time.
+	•	Settings: Adjust theme or enable wide mode via the settings (three dots at the top right)""")
 
 # this function gets the day-ahead prices from entsoe
 def get_day_ahead_data(start, end, country_code):
