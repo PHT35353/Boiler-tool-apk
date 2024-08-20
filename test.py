@@ -262,11 +262,11 @@ def main():
     gas_price = st.sidebar.number_input('Gas price EUR/kWh', value=0.30 / 9.796)
     desired_power = st.sidebar.number_input('Desired Power (kWh)', min_value=0.0, value=100.0, step=1.0)
     uploaded_file = st.sidebar.file_uploader("Upload your desired power data (Excel file)", type=["xlsx", "xls"])
-    
+
     if st.sidebar.button('Get Data'):
         day_ahead_data = get_day_ahead_data(start_date, end_date, country_code)
         imbalance_data = get_imbalance_data(start_date, end_date, country_code)
-        
+
         if day_ahead_data.empty or imbalance_data.empty:
             st.error("No data available")
         else:
@@ -275,17 +275,35 @@ def main():
                 try:
                     # Read the Excel file
                     uploaded_data = pd.read_excel(uploaded_file)
-                    
-                    # Automatically detect the time and power columns
+
+                    # Attempt to detect datetime and numeric columns
                     time_column = None
                     power_column = None
-                    
+
                     for col in uploaded_data.columns:
                         if pd.api.types.is_datetime64_any_dtype(uploaded_data[col]):
                             time_column = col
                         elif pd.api.types.is_numeric_dtype(uploaded_data[col]):
                             power_column = col
-                    
+
+                    # If detection fails, try alternative approaches
+                    if time_column is None:
+                        for col in uploaded_data.columns:
+                            # Attempt to parse dates in non-datetime columns
+                            try:
+                                if pd.to_datetime(uploaded_data[col], errors='coerce').notna().all():
+                                    time_column = col
+                                    break
+                            except Exception:
+                                continue
+
+                    if power_column is None:
+                        for col in uploaded_data.columns:
+                            # Assume that the numeric column with the most variation is the power column
+                            if uploaded_data[col].nunique() > 1:
+                                power_column = col
+                                break
+
                     if time_column and power_column:
                         uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column])
                         # Merge with day-ahead and imbalance data based on detected time and power columns
@@ -307,21 +325,21 @@ def main():
             else:
                 day_ahead_data['Desired Power'] = desired_power
                 imbalance_data['Desired Power'] = desired_power
-            
+
             # Calculate the costs and power usage for both day-ahead and imbalance data
             day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
             imbalance_data = imbalance_costs(imbalance_data, gas_price)
-            
+
             day_ahead_data = day_ahead_power(day_ahead_data)
             imbalance_data = imbalance_power(imbalance_data)
-            
+
             # Calculate savings for both day-ahead and imbalance data
             total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
             total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
-            
+
             total_cost_day_ahead = gas_boiler_cost_day_ahead - abs(e_boiler_cost_day_ahead)
             total_cost_imbalance = gas_boiler_cost_imbalance - abs(e_boiler_cost_imbalance)
-            
+
             # Drop the 'Time_Diff_Minutes' column before displaying
             imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
 
@@ -350,13 +368,13 @@ def main():
 
             st.write('### Imbalance Data Table:')
             st.dataframe(imbalance_data_display)
-            
+
             # Show the price plots
             fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
             st.write('### Price Comparison:')
             st.plotly_chart(fig_day_ahead_price)
             st.plotly_chart(fig_imbalance_price)
-            
+
             # Show the power plots
             fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
             st.write('### Power Usage:')
