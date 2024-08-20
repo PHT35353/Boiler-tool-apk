@@ -88,15 +88,15 @@ def imbalance_costs(data, gas_price):
     return data
 
 # this function adds the clients desired power as an extra column and it shows the power usage of the efficient boiler from the day-ahead market only
-def day_ahead_power(data, desired_power):
-    data['E-boiler_Power_Day_Ahead'] = data.apply(lambda x: desired_power if x['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else 0, axis=1)
-    data['Gas-boiler_Power_Day_Ahead'] = data.apply(lambda x: desired_power if x['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else 0, axis=1)
+def day_ahead_power(data):
+    data['E-boiler_Power_Day_Ahead'] = data.apply(lambda x: x['Desired Power'] if x['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else 0, axis=1)
+    data['Gas-boiler_Power_Day_Ahead'] = data.apply(lambda x: x['Desired Power'] if x['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else 0, axis=1)
     return data
 
 # this function adds the clients desired power as an extra column and it shows the power usage of the efficient boiler from the imbalance market only
-def imbalance_power(data, desired_power):
-    data['E-boiler_Power_Imbalance'] = data.apply(lambda x: desired_power if x['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0, axis=1)
-    data['Gas-boiler_Power_Imbalance'] = data.apply(lambda x: desired_power if x['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0, axis=1)
+def imbalance_power(data):
+    data['E-boiler_Power_Imbalance'] = data.apply(lambda x: x['Desired Power'] if x['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0, axis=1)
+    data['Gas-boiler_Power_Imbalance'] = data.apply(lambda x: x['Desired Power'] if x['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0, axis=1)
     return data
 
 # this function calculates the total saving price and precentage of the day-ahead market
@@ -254,6 +254,7 @@ def main():
     country_code = st.sidebar.text_input('Country code', 'NL')
     gas_price = st.sidebar.number_input('Gas price EUR/kWh', value=0.30 / 9.796)
     desired_power = st.sidebar.number_input('Desired Power (kWh)', min_value=0.0, value=100.0, step=1.0)
+    uploaded_file = st.sidebar.file_uploader("Upload your desired power data (Excel file)", type=["xlsx", "xls"])
     
     if st.sidebar.button('Get Data'):
         day_ahead_data = get_day_ahead_data(start_date, end_date, country_code)
@@ -262,6 +263,26 @@ def main():
         if day_ahead_data.empty or imbalance_data.empty:
             st.error("No data available")
         else:
+            # Process uploaded file if available, otherwise use the desired power input
+            if uploaded_file is not None:
+            # Read the Excel file
+            uploaded_data = pd.read_excel(uploaded_file)
+            
+            # Ensure the file has the correct structure (e.g., 'Time' and 'Desired Power' columns)
+            if 'Time' in uploaded_data.columns and 'Desired Power' in uploaded_data.columns:
+                uploaded_data['Time'] = pd.to_datetime(uploaded_data['Time'])
+                # Merge with day-ahead and imbalance data based on time
+                day_ahead_data = pd.merge(day_ahead_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
+                imbalance_data = pd.merge(imbalance_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
+                # Use the uploaded 'Desired Power' data
+                day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
+                imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
+            else:
+                st.error("Uploaded file must contain 'Time' and 'Desired Power' columns")
+        else:
+            day_ahead_data['Desired Power'] = desired_power
+            imbalance_data['Desired Power'] = desired_power
+            
             # Calculate the costs and power usage for both day-ahead and imbalance data
             day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
             imbalance_data = imbalance_costs(imbalance_data, gas_price)
