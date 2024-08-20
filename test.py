@@ -279,12 +279,14 @@ def main():
                     time_column = uploaded_data.columns[0]
                     power_column = uploaded_data.columns[1]
 
-                    # Convert the time column to datetime
+                    # Convert the time column to datetime with errors='coerce' to handle unexpected formats
                     uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column], errors='coerce')
-                    
+
                     # Check for any issues with the datetime conversion
                     if uploaded_data[time_column].isnull().any():
-                        st.error("The time column could not be parsed as dates.")
+                        # Identify the problematic rows
+                        problematic_rows = uploaded_data[uploaded_data[time_column].isnull()]
+                        st.error(f"The time column could not be parsed as dates. Problematic rows: {problematic_rows}")
                         return
 
                     # Merge with day-ahead and imbalance data based on time
