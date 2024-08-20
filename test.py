@@ -254,7 +254,7 @@ def plot_power(day_ahead_data, imbalance_data):
 
 
 def main():
-    # This function makes the sidebar of settings
+    # Sidebar settings
     st.sidebar.title('Settings')
     start_date = st.sidebar.date_input('Start date', pd.to_datetime('2023-01-01'))
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
@@ -276,9 +276,9 @@ def main():
                     # Read the Excel file
                     uploaded_data = pd.read_excel(uploaded_file)
 
-                    # Since the file has a specific format, let's manually identify the correct columns
-                    time_column = uploaded_data.columns[0]  # Assuming the first column is Time
-                    power_column = uploaded_data.columns[1]  # Assuming the second column is Desired Power
+                    # Manually identify the correct columns (assuming first is time, second is power)
+                    time_column = uploaded_data.columns[0]
+                    power_column = uploaded_data.columns[1]
 
                     # Convert the time column to datetime and align time zones
                     uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column], errors='coerce')
@@ -286,7 +286,7 @@ def main():
                         st.error("The time column could not be parsed as dates.")
                         return
 
-                    # Ensure time zone alignment with the handling of ambiguous times
+                    # Ensure time zone alignment with handling of ambiguous times
                     if day_ahead_data['Time'].dt.tz is not None:
                         uploaded_data[time_column] = uploaded_data[time_column].dt.tz_localize(day_ahead_data['Time'].dt.tz, ambiguous='NaT')
                     else:
@@ -297,8 +297,8 @@ def main():
                     imbalance_data = pd.merge(imbalance_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
 
                     # Use the uploaded 'Desired Power' data, ensuring no missing values
-                    day_ahead_data['Desired Power'] = day_ahead_data[power_column].fillna(method='ffill').fillna(method='bfill')
-                    imbalance_data['Desired Power'] = imbalance_data[power_column].fillna(method='ffill').fillna(method='bfill')
+                    day_ahead_data['Desired Power'] = pd.to_numeric(day_ahead_data[power_column], errors='coerce').fillna(method='ffill').fillna(method='bfill')
+                    imbalance_data['Desired Power'] = pd.to_numeric(imbalance_data[power_column], errors='coerce').fillna(method='ffill').fillna(method='bfill')
                 except Exception as e:
                     st.error(f"Error processing the uploaded file: {str(e)}")
                     return
@@ -312,6 +312,12 @@ def main():
 
             day_ahead_data = day_ahead_power(day_ahead_data)
             imbalance_data = imbalance_power(imbalance_data)
+
+            # Ensure power columns are numeric to avoid TypeErrors
+            day_ahead_data['Gas-boiler_Power_Day_Ahead'] = pd.to_numeric(day_ahead_data['Gas-boiler_Power_Day_Ahead'], errors='coerce')
+            day_ahead_data['E-boiler_Power_Day_Ahead'] = pd.to_numeric(day_ahead_data['E-boiler_Power_Day_Ahead'], errors='coerce')
+            imbalance_data['Gas-boiler_Power_Imbalance'] = pd.to_numeric(imbalance_data['Gas-boiler_Power_Imbalance'], errors='coerce')
+            imbalance_data['E-boiler_Power_Imbalance'] = pd.to_numeric(imbalance_data['E-boiler_Power_Imbalance'], errors='coerce')
 
             # Calculate savings for both day-ahead and imbalance data
             total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
