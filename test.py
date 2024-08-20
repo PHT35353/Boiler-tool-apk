@@ -270,7 +270,6 @@ def main():
         if day_ahead_data.empty or imbalance_data.empty:
             st.error("No data available")
         else:
-            # Process uploaded file if available, otherwise use the desired power input
             if uploaded_file is not None:
                 try:
                     # Read the Excel file
@@ -299,6 +298,11 @@ def main():
                     # Use the uploaded 'Desired Power' data, ensuring no missing values
                     day_ahead_data['Desired Power'] = pd.to_numeric(day_ahead_data[power_column], errors='coerce').fillna(method='ffill').fillna(method='bfill')
                     imbalance_data['Desired Power'] = pd.to_numeric(imbalance_data[power_column], errors='coerce').fillna(method='ffill').fillna(method='bfill')
+
+                    # Drop unnecessary columns after merge
+                    day_ahead_data = day_ahead_data.drop(columns=[time_column, power_column])
+                    imbalance_data = imbalance_data.drop(columns=[time_column, power_column])
+                    
                 except Exception as e:
                     st.error(f"Error processing the uploaded file: {str(e)}")
                     return
