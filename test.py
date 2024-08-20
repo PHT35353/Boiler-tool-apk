@@ -171,44 +171,64 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 # this function plots the price graph of day-ahead and imbalance data with plotly
 def plot_price(day_ahead_data, imbalance_data):
-    
-    # plots the day-ahead graph
+    # Plot for Day-Ahead E-boiler and Gas-boiler prices
     day_ahead_fig = go.Figure()
 
-    # converts the time to data time
+    # Convert time to datetime
     day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
 
-    # plots the day-ahead E-boiler and Gas-boiler costs
-    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['E_Boiler_Cost_in_Euro'],
-                                       mode='lines', name='E-boiler Cost (Day-Ahead)', line=dict(color='blue')))
-    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['Gas_Boiler_Cost_in_Euro'],
-                                       mode='lines', name='Gas-boiler Cost (Day-Ahead)', line=dict(color='red', dash='dash')))
+    # Plot day-ahead prices based on which boiler is more efficient
+    day_ahead_fig.add_trace(go.Scatter(
+        x=day_ahead_data['Time'],
+        y=day_ahead_data.apply(lambda row: row['Day-Ahead_Price_EUR_per_MWh'] / 1000 if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else None, axis=1),
+        mode='lines',
+        name='E-boiler Price (Day-Ahead)',
+        line=dict(color='blue')
+    ))
+    day_ahead_fig.add_trace(go.Scatter(
+        x=day_ahead_data['Time'],
+        y=day_ahead_data.apply(lambda row: row['Day-Ahead_Price_EUR_per_MWh'] / 1000 if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else None, axis=1),
+        mode='lines',
+        name='Gas-boiler Price (Day-Ahead)',
+        line=dict(color='red', dash='dash')
+    ))
 
-    # adds the titels and names
-    day_ahead_fig.update_layout(title='Day-Ahead E-boiler vs Gas-boiler Costs',
-                                xaxis_title='Time',
-                                yaxis_title='Cost (EUR)',
-                                xaxis=dict(tickformat='%Y-%m-%d'),
-                                legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top'))
+    day_ahead_fig.update_layout(
+        title='Day-Ahead E-boiler vs Gas-boiler Prices',
+        xaxis_title='Time',
+        yaxis_title='Price (EUR/kWh)',
+        xaxis=dict(tickformat='%Y-%m-%d'),
+        legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top')
+    )
 
-    # plots the imbalance graph
+    # Plot for Imbalance E-boiler and Gas-boiler prices
     imbalance_fig = go.Figure()
 
-    
     imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
 
-    # plots the imbalance E-boiler and Gas-boiler costs
-    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['E_Boiler_Cost_Imbalance_in_Euro'],
-                                       mode='lines', name='E-boiler Cost (Imbalance)', line=dict(color='blue')))
-    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['Gas_Boiler_Cost_Imbalance_in_Euro'],
-                                       mode='lines', name='Gas-boiler Cost (Imbalance)', line=dict(color='red', dash='dash')))
+    # Plot imbalance prices based on which boiler is more efficient
+    imbalance_fig.add_trace(go.Scatter(
+        x=imbalance_data['Time'],
+        y=imbalance_data.apply(lambda row: row['Imbalance_Price_EUR_per_MWh'] / 1000 if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else None, axis=1),
+        mode='lines',
+        name='E-boiler Price (Imbalance)',
+        line=dict(color='blue')
+    ))
+    imbalance_fig.add_trace(go.Scatter(
+        x=imbalance_data['Time'],
+        y=imbalance_data.apply(lambda row: row['Imbalance_Price_EUR_per_MWh'] / 1000 if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else None, axis=1),
+        mode='lines',
+        name='Gas-boiler Price (Imbalance)',
+        line=dict(color='red', dash='dash')
+    ))
 
-    # adds the titels and names
-    imbalance_fig.update_layout(title='Imbalance E-boiler vs Gas-boiler Costs',
-                                xaxis_title='Time',
-                                yaxis_title='Cost (EUR)',
-                                xaxis=dict(tickformat='%Y-%m-%d'),
-                                legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top'))
+    imbalance_fig.update_layout(
+        title='Imbalance E-boiler vs Gas-boiler Prices',
+        xaxis_title='Time',
+        yaxis_title='Price (EUR/kWh)',
+        xaxis=dict(tickformat='%Y-%m-%d'),
+        legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top')
+    )
 
     return day_ahead_fig, imbalance_fig
 
@@ -263,7 +283,7 @@ def main():
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
     country_code = st.sidebar.text_input('Country code', 'NL')
     gas_price = st.sidebar.number_input('Gas price EUR/kWh', value=0.30 / 9.796)
-    desired_power = st.sidebar.number_input('Desired Power (kWh)', min_value=0.0, value=100.0, step=1.0)
+    desired_power = st.sidebar.number_input('Desired Power (kW)', min_value=0.0, value=100.0, step=1.0)
     uploaded_file = st.sidebar.file_uploader("Upload your desired power data (Excel file)", type=["xlsx", "xls"])
 
     if st.sidebar.button('Get Data'):
