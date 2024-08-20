@@ -254,6 +254,35 @@ def plot_power(day_ahead_data, imbalance_data):
 
 
 
+def detect_time_and_power_columns(data):
+    """Automatically detects the time and power columns in the uploaded data."""
+    time_column = None
+    power_column = None
+    
+    # Try to detect the time column
+    for column in data.columns:
+        if pd.api.types.is_datetime64_any_dtype(data[column]):
+            time_column = column
+            break
+        try:
+            if pd.to_datetime(data[column], errors='coerce').notna().sum() > 0:
+                time_column = column
+                data[time_column] = pd.to_datetime(data[time_column], errors='coerce')
+                break
+        except Exception:
+            continue
+    
+    # Try to detect the power column (assuming it's numeric)
+    for column in data.columns:
+        if pd.api.types.is_numeric_dtype(data[column]):
+            power_column = column
+            break
+
+    if not time_column or not power_column:
+        raise ValueError("Could not automatically detect the time and power columns. Please ensure your data contains datetime and numeric columns.")
+    
+    return time_column, power_column
+
 def validate_desired_power_column(data):
     """Validates the Desired Power column in the uploaded data."""
     if 'Desired Power' not in data.columns:
