@@ -1,4 +1,4 @@
- import pandas as pd
+import pandas as pd
 import streamlit as st
 from entsoe import EntsoePandasClient
 from decimal import Decimal
