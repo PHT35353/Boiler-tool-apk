@@ -280,12 +280,19 @@ def main():
                     time_column = uploaded_data.columns[0]  # Assuming the first column is Time
                     power_column = uploaded_data.columns[1]  # Assuming the second column is Desired Power
 
-                    # Convert to datetime and merge with the main datasets
+                    # Convert the time column to datetime and align time zones
                     uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column], errors='coerce')
                     if uploaded_data[time_column].isnull().all():
                         st.error("The time column could not be parsed as dates.")
                         return
 
+                    # Ensure time zone alignment
+                    if day_ahead_data['Time'].dt.tz is not None:
+                        uploaded_data[time_column] = uploaded_data[time_column].dt.tz_localize(day_ahead_data['Time'].dt.tz)
+                    else:
+                        uploaded_data[time_column] = uploaded_data[time_column].dt.tz_localize(None)
+
+                    # Merge with day-ahead and imbalance data based on time
                     day_ahead_data = pd.merge(day_ahead_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
                     imbalance_data = pd.merge(imbalance_data, uploaded_data[[time_column, power_column]], left_on='Time', right_on=time_column, how='left')
 
