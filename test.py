@@ -279,8 +279,11 @@ def main():
                     time_column = uploaded_data.columns[0]
                     power_column = uploaded_data.columns[1]
 
-                    # Convert the time column to datetime with errors='coerce' to handle unexpected formats
-                    uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column], errors='coerce')
+                    # Filter out rows with non-numeric "Desired Power" values
+                    uploaded_data = uploaded_data[pd.to_numeric(uploaded_data[power_column], errors='coerce').notnull()]
+
+                    # Convert the time column to datetime with error handling
+                    uploaded_data[time_column] = pd.to_datetime(uploaded_data[time_column], errors='coerce', dayfirst=True)
 
                     # Check for any issues with the datetime conversion
                     if uploaded_data[time_column].isnull().any():
