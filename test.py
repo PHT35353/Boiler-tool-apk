@@ -4,6 +4,7 @@ from entsoe import EntsoePandasClient
 from decimal import Decimal
 from scipy.signal import find_peaks
 import plotly.graph_objs as go
+import numpy as np
 
 # required own api token from entsoe
 API_TOKEN = '0464a296-1b5d-4be6-a037-b3414de630f8'
