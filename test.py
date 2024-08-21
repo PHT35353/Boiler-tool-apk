@@ -195,13 +195,6 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
         st.error("Imbalance_Price_EUR_per_MWh column is missing in imbalance_data.")
         return None, None
 
-    # Debug: Display the first few rows of the data
-    st.write("Day-Ahead Data (First 5 rows):")
-    st.write(day_ahead_data.head())
-
-    st.write("Imbalance Data (First 5 rows):")
-    st.write(imbalance_data.head())
-
     # Plot the day-ahead graph
     day_ahead_fig = go.Figure()
 
