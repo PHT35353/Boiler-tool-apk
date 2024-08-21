@@ -190,7 +190,6 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
 	st.write("Day-Ahead Prices:")
         st.dataframe(day_ahead_data[['Time', 'E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh']])
     else:
-    else:
         st.error("Day-Ahead_Price_EUR_per_MWh column is missing in day_ahead_data.")
         return None, None
 
