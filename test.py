@@ -173,6 +173,10 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 def plot_price(day_ahead_data, imbalance_data, gas_price):
     # Convert gas price to EUR/kWh
     gas_price_kwh = gas_price
+	
+    day_ahead_data['Day-Ahead_Price_EUR_per_MWh'] = pd.to_numeric(day_ahead_data['Day-Ahead_Price_EUR_per_MWh'], errors='coerce')
+    imbalance_data['Imbalance_Price_EUR_per_MWh'] = pd.to_numeric(imbalance_data['Imbalance_Price_EUR_per_MWh'], errors='coerce')
+
     
     # Add the constant gas price column to the data
     day_ahead_data['Gas_Boiler_Price_EUR_per_KWh'] = gas_price_kwh
@@ -182,7 +186,7 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
     if 'Day-Ahead_Price_EUR_per_MWh' in day_ahead_data.columns:
         # Only set the E-boiler price where it is efficient, otherwise set it to NaN
         day_ahead_data['E_Boiler_Price_EUR_per_KWh'] = day_ahead_data.apply(
-            lambda row: (row['Day-Ahead_Price_EUR_per_MWh']) if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else 0,
+            lambda row: (row['Day-Ahead_Price_EUR_per_MWh']/1000) if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else 0,
             axis=1
         )
         # Set the Gas-boiler price only where the Gas-boiler is efficient, otherwise set it to NaN
@@ -208,7 +212,7 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
         
         # Only set the E-boiler price where it is efficient, otherwise set it to NaN
         imbalance_data['E_Boiler_Price_EUR_per_KWh'] = imbalance_data.apply(
-            lambda row: (row['Imbalance_Price_EUR_per_MWh']) * row['Time_Diff_Hours'] if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0,
+            lambda row: (row['Imbalance_Price_EUR_per_MWh']/1000) * row['Time_Diff_Hours'] if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0,
             axis=1
         )
         # Set the Gas-boiler price only where the Gas-boiler is efficient, otherwise set it to NaN
