@@ -384,12 +384,14 @@ def main():
         # Calculate costs and power usage
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
         imbalance_data = imbalance_costs(imbalance_data, gas_price)
-
-        day_ahead_data = day_ahead_power(day_ahead_data)
-        imbalance_data = imbalance_power(imbalance_data)
         
         # Calculate time differences for imbalance data
         imbalance_data = calculate_time_diff_hours(imbalance_data)
+
+        # Ensure the columns are present before proceeding
+        if 'Efficient_Boiler_Imbalance' not in imbalance_data.columns or 'Time_Diff_Hours' not in imbalance_data.columns:
+            st.error("The 'Efficient_Boiler_Imbalance' or 'Time_Diff_Hours' column is missing in the imbalance_data DataFrame.")
+            return
 
         # Remove the specified columns before displaying
         day_ahead_data_display = day_ahead_data.drop(columns=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], errors='ignore')
