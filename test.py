@@ -388,15 +388,12 @@ def main():
         day_ahead_data = day_ahead_power(day_ahead_data)
         imbalance_data = imbalance_power(imbalance_data)
         
-         # Calculate time differences for imbalance data
+        # Calculate time differences for imbalance data
         imbalance_data = calculate_time_diff_hours(imbalance_data)
 
-        # Now call plot_price with the properly prepared data
-        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data, gas_price)
-
-	day_ahead_data_display = day_ahead_data.drop(columns=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], errors='ignore')
+        # Remove the specified columns before displaying
+        day_ahead_data_display = day_ahead_data.drop(columns=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], errors='ignore')
         imbalance_data_display = imbalance_data.drop(columns=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh', 'Time_Diff_Hours'], errors='ignore')
-
 
         # Calculate savings for both day-ahead and imbalance data
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
@@ -406,7 +403,7 @@ def main():
         total_cost_imbalance = gas_boiler_cost_imbalance - abs(e_boiler_cost_imbalance)
 
         # Drop the 'Time_Diff_Minutes' column before displaying
-        imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
+        imbalance_data_display = imbalance_data_display.drop(columns=['Time_Diff_Minutes'], errors='ignore')
 
         # Display the results
         st.write('### Day-Ahead Data Results:')
@@ -429,12 +426,11 @@ def main():
 
         # Show the data tables
         st.write('### Day-Ahead Data Table:')
-        st.dataframe(day_ahead_data)
+        st.dataframe(day_ahead_data_display)
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
-         # Plot the price graphs
-        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
+        # Plot the price graphs
         if fig_day_ahead_price is not None and fig_imbalance_price is not None:
             st.write('### Price Comparison:')
             st.plotly_chart(fig_day_ahead_price)
@@ -450,3 +446,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
