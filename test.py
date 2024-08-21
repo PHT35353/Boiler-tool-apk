@@ -169,9 +169,8 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, data
 
 
-#this function plots the price graph of day-ahead and imbalance data with plotly
-
- def plot_price(day_ahead_data, imbalance_data):
+# this function plots the price graph of day-ahead and imbalance data with plotly
+def plot_price(day_ahead_data, imbalance_data):
     
     # plots the day-ahead graph
     day_ahead_fig = go.Figure()
