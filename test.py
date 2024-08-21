@@ -431,6 +431,7 @@ def main():
         st.dataframe(imbalance_data_display)
 
         # Plot the price graphs
+        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
         if fig_day_ahead_price is not None and fig_imbalance_price is not None:
             st.write('### Price Comparison:')
             st.plotly_chart(fig_day_ahead_price)
@@ -446,4 +447,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
