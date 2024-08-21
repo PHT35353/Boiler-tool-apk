@@ -394,13 +394,13 @@ def main():
         # Now call plot_price with the properly prepared data
         fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data, gas_price)
 
+	day_ahead_data_display = day_ahead_data.drop(columns=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], errors='ignore')
+        imbalance_data_display = imbalance_data.drop(columns=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh', 'Time_Diff_Hours'], errors='ignore')
+
+
         # Calculate savings for both day-ahead and imbalance data
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
         total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
-
-        day_ahead_data_display = day_ahead_data.drop(columns=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], errors='ignore')
-        imbalance_data_display = imbalance_data.drop(columns=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh', 'Time_Diff_Hours'], errors='ignore')
-
 	    
         total_cost_day_ahead = gas_boiler_cost_day_ahead - abs(e_boiler_cost_day_ahead)
         total_cost_imbalance = gas_boiler_cost_imbalance - abs(e_boiler_cost_imbalance)
