@@ -187,8 +187,6 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
             lambda row: gas_price_kwh if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else 0,
             axis=1
         )
-	st.write("Day-Ahead Prices:")
-        st.dataframe(day_ahead_data[['Time', 'E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh']])
     else:
         st.error("Day-Ahead_Price_EUR_per_MWh column is missing in day_ahead_data.")
         return None, None
@@ -215,8 +213,6 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
             lambda row: gas_price_kwh * row['Time_Diff_Hours'] if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0,
             axis=1
         )
-	st.write("Imbalance Prices:")
-        st.dataframe(imbalance_data[['Time', 'E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh']])
     else:
         st.error("Imbalance_Price_EUR_per_MWh column is missing in imbalance_data.")
         return None, None
