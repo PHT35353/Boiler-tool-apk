@@ -42,6 +42,24 @@ def get_day_ahead_data(start, end, country_code):
     
     return day_ahead_prices
 
+
+def calculate_time_diff_hours(data):
+    # Calculate the time difference in minutes between consecutive rows
+    data['Time_Diff_Minutes'] = data['Time'].diff().dt.total_seconds() / 60.0
+    
+    # Set the first row's time difference to a default value (e.g., 15 minutes)
+    if data['Time_Diff_Minutes'].isnull().any():
+        default_time_diff = 15  # Default to 15 minutes if not available
+        data['Time_Diff_Minutes'].fillna(default_time_diff, inplace=True)
+    
+    # Convert to hours
+    data['Time_Diff_Hours'] = data['Time_Diff_Minutes'] / 60.0
+    st.write("Imbalance Data with Time Difference in Hours:")
+    st.dataframe(data[['Time', 'Time_Diff_Minutes', 'Time_Diff_Hours']])
+    
+    return data
+
+
 # this function gets the imbalance prices from entsoe
 def get_imbalance_data(start, end, country_code):
     start = pd.Timestamp(start, tz='Europe/Brussels')
@@ -96,7 +114,10 @@ def day_ahead_costs(data, gas_price):
 # this function applies the efficient_boiler_imbalance function to the imbalance_Price_EUR_per_MWh column
 def imbalance_costs(data, gas_price):
     data['Efficient_Boiler_Imbalance'] = data['Imbalance_Price_EUR_per_MWh'].apply(efficient_boiler_imbalance, gas_price=gas_price)
+    st.write("Imbalance Data after applying efficient_boiler_imbalance:")
+    st.dataframe(data[['Time', 'Imbalance_Price_EUR_per_MWh', 'Efficient_Boiler_Imbalance']])
     return data
+
 
 # this function adds the clients desired power as an extra column and it shows the power usage of the efficient boiler from the day-ahead market only
 def day_ahead_power(data):
@@ -376,6 +397,12 @@ def main():
 
         day_ahead_data = day_ahead_power(day_ahead_data)
         imbalance_data = imbalance_power(imbalance_data)
+        
+         # Calculate time differences for imbalance data
+        imbalance_data = calculate_time_diff_hours(imbalance_data)
+
+        # Now call plot_price with the properly prepared data
+        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data, gas_price)
 
         # Calculate savings for both day-ahead and imbalance data
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
