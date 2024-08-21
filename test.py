@@ -174,88 +174,61 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 def plot_price(day_ahead_data, imbalance_data, gas_price):
     # Convert gas price to EUR/kWh
     gas_price_kwh = gas_price
-	
+
+    # Ensure that price columns are numeric
     day_ahead_data['Day-Ahead_Price_EUR_per_MWh'] = pd.to_numeric(day_ahead_data['Day-Ahead_Price_EUR_per_MWh'], errors='coerce')
     imbalance_data['Imbalance_Price_EUR_per_MWh'] = pd.to_numeric(imbalance_data['Imbalance_Price_EUR_per_MWh'], errors='coerce')
 
-    # Add the constant gas price column to the data
+    # Calculate E-boiler price in EUR/kWh for day-ahead and imbalance data
+    day_ahead_data['E_Boiler_Price_EUR_per_KWh'] = day_ahead_data.apply(
+        lambda row: row['Day-Ahead_Price_EUR_per_MWh'] / 1000 if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else np.nan,
+        axis=1
+    )
+    imbalance_data['E_Boiler_Price_EUR_per_KWh'] = imbalance_data.apply(
+        lambda row: row['Imbalance_Price_EUR_per_MWh'] / 1000 if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else np.nan,
+        axis=1
+    )
+
+    # Add gas price as a constant line
     day_ahead_data['Gas_Boiler_Price_EUR_per_KWh'] = gas_price_kwh
     imbalance_data['Gas_Boiler_Price_EUR_per_KWh'] = gas_price_kwh
 
-    # Day-Ahead data processing
-    if 'Day-Ahead_Price_EUR_per_MWh' in day_ahead_data.columns:
-        # Set the E-boiler price where it is efficient, otherwise leave as NaN (instead of setting to 0)
-        day_ahead_data['E_Boiler_Price_EUR_per_KWh'] = day_ahead_data.apply(
-            lambda row: (row['Day-Ahead_Price_EUR_per_MWh'] / 1000) if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else np.nan,
-            axis=1
-        )
-        # Set the Gas-boiler price only where the Gas-boiler is efficient, otherwise leave as NaN
-        day_ahead_data['Gas_Boiler_Price_EUR_per_KWh'] = day_ahead_data.apply(
-            lambda row: gas_price_kwh if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else np.nan,
-            axis=1
-        )
-    else:
-        st.error("Day-Ahead_Price_EUR_per_MWh column is missing in day_ahead_data.")
-        return None, None
-
-    # Imbalance data processing
-    if 'Imbalance_Price_EUR_per_MWh' in imbalance_data.columns:
-        # Calculate the time difference in minutes between consecutive rows
-        imbalance_data['Time_Diff_Minutes'] = imbalance_data['Time'].diff().dt.total_seconds() / 60.0
-        
-        # Set the first row's time difference to a default value (e.g., 15 minutes)
-        if imbalance_data['Time_Diff_Minutes'].isnull().any():
-            default_time_diff = 15  # Default to 15 minutes if not available
-            imbalance_data['Time_Diff_Minutes'].fillna(default_time_diff, inplace=True)
-        
-        imbalance_data['Time_Diff_Hours'] = imbalance_data['Time_Diff_Minutes'] / 60.0
-        
-        # Set the E-boiler price where it is efficient, otherwise leave as NaN
-        imbalance_data['E_Boiler_Price_EUR_per_KWh'] = imbalance_data.apply(
-            lambda row: (row['Imbalance_Price_EUR_per_MWh'] / 1000) * row['Time_Diff_Hours'] if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else np.nan,
-            axis=1
-        )
-        # Set the Gas-boiler price only where the Gas-boiler is efficient, otherwise leave as NaN
-        imbalance_data['Gas_Boiler_Price_EUR_per_KWh'] = imbalance_data.apply(
-            lambda row: gas_price_kwh * row['Time_Diff_Hours'] if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else np.nan,
-            axis=1
-        )
-    else:
-        st.error("Imbalance_Price_EUR_per_MWh column is missing in imbalance_data.")
-        return None, None
-
-    # Drop rows with NaN values before plotting to avoid plotting issues
+    # Drop rows where both E-boiler and Gas-boiler prices are NaN to avoid plotting issues
     day_ahead_data = day_ahead_data.dropna(subset=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], how='all')
     imbalance_data = imbalance_data.dropna(subset=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], how='all')
 
-    # Clip any negative values that shouldn't be negative
+    # Clip negative values to 0 (if any exist)
     day_ahead_data['E_Boiler_Price_EUR_per_KWh'] = day_ahead_data['E_Boiler_Price_EUR_per_KWh'].clip(lower=0)
     imbalance_data['E_Boiler_Price_EUR_per_KWh'] = imbalance_data['E_Boiler_Price_EUR_per_KWh'].clip(lower=0)
 
-    # Plot the day-ahead graph
+    # Plot Day-Ahead prices
     day_ahead_fig = go.Figure()
 
-    # Convert time to datetime
     if 'Time' in day_ahead_data.columns:
         day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
     else:
         st.error("Time column is missing in day_ahead_data.")
         return None, None
 
-    # Plot the day-ahead E-boiler and Gas-boiler prices
-    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['E_Boiler_Price_EUR_per_KWh'],
-                                       mode='lines', name='E-boiler Price (Day-Ahead)', line=dict(color='blue')))
-    day_ahead_fig.add_trace(go.Scatter(x=day_ahead_data['Time'], y=day_ahead_data['Gas_Boiler_Price_EUR_per_KWh'],
-                                       mode='lines', name='Gas-boiler Price (Day-Ahead)', line=dict(color='red', dash='dash')))
+    day_ahead_fig.add_trace(go.Scatter(
+        x=day_ahead_data['Time'], y=day_ahead_data['E_Boiler_Price_EUR_per_KWh'],
+        mode='lines', name='E-boiler Price (Day-Ahead)', line=dict(color='blue')
+    ))
+    day_ahead_fig.add_trace(go.Scatter(
+        x=day_ahead_data['Time'], y=day_ahead_data['Gas_Boiler_Price_EUR_per_KWh'],
+        mode='lines', name='Gas-boiler Price (Day-Ahead)', line=dict(color='red', dash='dash')
+    ))
 
-    # Add titles and labels
-    day_ahead_fig.update_layout(title='Day-Ahead E-boiler vs Gas-boiler Prices (EUR/kWh)',
-                                xaxis_title='Time',
-                                yaxis_title='Price (EUR/kWh)',
-                                xaxis=dict(tickformat='%Y-%m-%d'),
-                                legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top'))
+    day_ahead_fig.update_layout(
+        title='Day-Ahead E-boiler vs Gas-boiler Prices (EUR/kWh)',
+        xaxis_title='Time',
+        yaxis_title='Price (EUR/kWh)',
+        xaxis=dict(tickformat='%Y-%m-%d'),
+        legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top'),
+        yaxis=dict(rangemode='tozero')
+    )
 
-    # Plot the imbalance graph
+    # Plot Imbalance prices
     imbalance_fig = go.Figure()
 
     if 'Time' in imbalance_data.columns:
@@ -264,18 +237,23 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
         st.error("Time column is missing in imbalance_data.")
         return None, None
 
-    # Plot the imbalance E-boiler and Gas-boiler prices
-    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['E_Boiler_Price_EUR_per_KWh'],
-                                       mode='lines', name='E-boiler Price (Imbalance)', line=dict(color='blue')))
-    imbalance_fig.add_trace(go.Scatter(x=imbalance_data['Time'], y=imbalance_data['Gas_Boiler_Price_EUR_per_KWh'],
-                                       mode='lines', name='Gas-boiler Price (Imbalance)', line=dict(color='red', dash='dash')))
+    imbalance_fig.add_trace(go.Scatter(
+        x=imbalance_data['Time'], y=imbalance_data['E_Boiler_Price_EUR_per_KWh'],
+        mode='lines', name='E-boiler Price (Imbalance)', line=dict(color='blue')
+    ))
+    imbalance_fig.add_trace(go.Scatter(
+        x=imbalance_data['Time'], y=imbalance_data['Gas_Boiler_Price_EUR_per_KWh'],
+        mode='lines', name='Gas-boiler Price (Imbalance)', line=dict(color='red', dash='dash')
+    ))
 
-    # Add titles and labels
-    imbalance_fig.update_layout(title='Imbalance E-boiler vs Gas-boiler Prices (EUR/kWh)',
-                                xaxis_title='Time',
-                                yaxis_title='Price (EUR/kWh)',
-                                xaxis=dict(tickformat='%Y-%m-%d'),
-                                legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top'))
+    imbalance_fig.update_layout(
+        title='Imbalance E-boiler vs Gas-boiler Prices (EUR/kWh)',
+        xaxis_title='Time',
+        yaxis_title='Price (EUR/kWh)',
+        xaxis=dict(tickformat='%Y-%m-%d'),
+        legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top'),
+        yaxis=dict(rangemode='tozero')
+    )
 
     return day_ahead_fig, imbalance_fig
 
