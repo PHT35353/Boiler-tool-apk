@@ -177,12 +177,12 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
     
     # Day-Ahead data processing
     if 'Day-Ahead_Price_EUR_per_MWh' in day_ahead_data.columns:
-        # Set E-boiler price where E-boiler is efficient, otherwise set to NaN
+        # Set E-boiler price where E-boiler is efficient, otherwise set to 0
         day_ahead_data['E_Boiler_Price_EUR_per_KWh'] = day_ahead_data.apply(
             lambda row: row['Day-Ahead_Price_EUR_per_MWh'] / 1000 if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else 0,
             axis=1
         )
-        # Set Gas-boiler price where Gas-boiler is efficient, otherwise set to NaN
+        # Set Gas-boiler price where Gas-boiler is efficient, otherwise set to 0
         day_ahead_data['Gas_Boiler_Price_EUR_per_KWh'] = day_ahead_data.apply(
             lambda row: gas_price_kwh if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else 0,
             axis=1
@@ -203,12 +203,12 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
         
         imbalance_data['Time_Diff_Hours'] = imbalance_data['Time_Diff_Minutes'] / 60.0
         
-        # Set E-boiler price where E-boiler is efficient, otherwise set to NaN
+        # Set E-boiler price where E-boiler is efficient, otherwise set to 0
         imbalance_data['E_Boiler_Price_EUR_per_KWh'] = imbalance_data.apply(
             lambda row: (row['Imbalance_Price_EUR_per_MWh'] / 1000) * row['Time_Diff_Hours'] if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0,
             axis=1
         )
-        # Set Gas-boiler price where Gas-boiler is efficient, otherwise set to NaN
+        # Set Gas-boiler price where Gas-boiler is efficient, otherwise set to 0
         imbalance_data['Gas_Boiler_Price_EUR_per_KWh'] = imbalance_data.apply(
             lambda row: gas_price_kwh * row['Time_Diff_Hours'] if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0,
             axis=1
@@ -216,10 +216,6 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
     else:
         st.error("Imbalance_Price_EUR_per_MWh column is missing in imbalance_data.")
         return None, None
-
-    # Drop rows with NaN values before plotting to avoid plotting issues
-    day_ahead_data = day_ahead_data.dropna(subset=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], how='all')
-    imbalance_data = imbalance_data.dropna(subset=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], how='all')
 
     # Clip any negative values that shouldn't be negative
     day_ahead_data['E_Boiler_Price_EUR_per_KWh'] = day_ahead_data['E_Boiler_Price_EUR_per_KWh'].clip(lower=0)
@@ -271,6 +267,7 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
                                 legend=dict(x=0, y=-0.2, xanchor='left', yanchor='top'))
 
     return day_ahead_fig, imbalance_fig
+
 
 
 
