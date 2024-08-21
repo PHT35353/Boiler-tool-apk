@@ -174,9 +174,6 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
     
     # Convert gas price to EUR/kWh
     gas_price_kwh = gas_price
-    
-    # Debug: Show the gas price being used
-    st.write(f"Gas Price (EUR/kWh): {gas_price_kwh}")
 
     # Add a constant gas price column to the data
     day_ahead_data['Gas_Boiler_Price_EUR_per_kWh'] = gas_price_kwh
