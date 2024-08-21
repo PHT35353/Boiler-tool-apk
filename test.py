@@ -345,15 +345,6 @@ def main():
         # Drop the 'Time_Diff_Minutes' column before displaying
         imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
 
-        # Plot the price graphs
-        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
-        if fig_day_ahead_price is not None and fig_imbalance_price is not None:
-            st.write('### Price Comparison:')
-            st.plotly_chart(fig_day_ahead_price)
-            st.plotly_chart(fig_imbalance_price)
-        else:
-            st.error("Error generating price comparison charts.")
-
         # Display the results
         st.write('### Day-Ahead Data Results:')
         with st.container():
