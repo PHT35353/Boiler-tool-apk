@@ -370,12 +370,6 @@ def main():
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
-        # Show the power plots
-        fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
-        st.write('### Power Usage:')
-        st.plotly_chart(fig_day_ahead_power)
-        st.plotly_chart(fig_imbalance_power)
-
          # Plot the price graphs
         fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
         if fig_day_ahead_price is not None and fig_imbalance_price is not None:
@@ -384,6 +378,12 @@ def main():
             st.plotly_chart(fig_imbalance_price)
         else:
             st.error("Error generating price comparison charts.")
+
+        # Show the power plots
+        fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
+        st.write('### Power Usage:')
+        st.plotly_chart(fig_day_ahead_power)
+        st.plotly_chart(fig_imbalance_power)
 
 if __name__ == '__main__':
     main()
