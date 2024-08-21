@@ -177,6 +177,10 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
     day_ahead_data['Gas_Boiler_Price_EUR_per_KWh'] = gas_price_kwh
     imbalance_data['Gas_Boiler_Price_EUR_per_KWh'] = gas_price_kwh
 
+    # Debug: Check the Efficient_Boiler columns
+    st.write("Efficient_Boiler_Day_Ahead:", day_ahead_data[['Time', 'Efficient_Boiler_Day_Ahead']].head(10))
+    st.write("Efficient_Boiler_Imbalance:", imbalance_data[['Time', 'Efficient_Boiler_Imbalance']].head(10))
+
     # Day-Ahead data processing
     if 'Day-Ahead_Price_EUR_per_MWh' in day_ahead_data.columns:
         day_ahead_data['E_Boiler_Price_EUR_per_KWh'] = day_ahead_data.apply(
@@ -205,6 +209,9 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
         st.error("Imbalance_Price_EUR_per_MWh column is missing in imbalance_data.")
         return None, None
 
+    # Debug: Print out the values of E_Boiler_Price_EUR_per_KWh before plotting
+    st.write("Day-Ahead E-Boiler Prices (EUR/kWh):", day_ahead_data[['Time', 'E_Boiler_Price_EUR_per_KWh']].head(10))
+    st.write("Imbalance E-Boiler Prices (EUR/kWh):", imbalance_data[['Time', 'E_Boiler_Price_EUR_per_KWh']].head(10))
 
     # Drop rows with NaN values before plotting
     day_ahead_data = day_ahead_data.dropna(subset=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], how='all')
