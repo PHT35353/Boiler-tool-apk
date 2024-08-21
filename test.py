@@ -169,7 +169,6 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, data
 
 
-# this function plots the price graph of day-ahead and imbalance data with plotly
 def plot_price(day_ahead_data, imbalance_data, gas_price):
     # Convert gas price to EUR/kWh
     gas_price_kwh = gas_price
@@ -190,6 +189,14 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
 
     # Imbalance data processing
     if 'Imbalance_Price_EUR_per_MWh' in imbalance_data.columns:
+        # Calculate the time difference in minutes between consecutive rows
+        imbalance_data['Time_Diff_Minutes'] = imbalance_data['Time'].diff().dt.total_seconds() / 60.0
+        
+        # Set the first row's time difference to a default value (e.g., 15 minutes)
+        if imbalance_data['Time_Diff_Minutes'].isnull().any():
+            default_time_diff = 15  # Default to 15 minutes if not available
+            imbalance_data['Time_Diff_Minutes'].fillna(default_time_diff, inplace=True)
+        
         imbalance_data['Time_Diff_Hours'] = imbalance_data['Time_Diff_Minutes'] / 60.0
         
         imbalance_data['E_Boiler_Price_EUR_per_KWh'] = imbalance_data.apply(
