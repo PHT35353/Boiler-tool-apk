@@ -331,10 +331,6 @@ def main():
             day_ahead_data['Desired Power'] = desired_power
             imbalance_data['Desired Power'] = desired_power
 
-        # Debugging: Display the first few rows of data
-        st.write("Day-Ahead Data (Preview):", day_ahead_data.head())
-        st.write("Imbalance Data (Preview):", imbalance_data.head())
-
         # Calculate costs and power usage
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
         imbalance_data = imbalance_costs(imbalance_data, gas_price)
@@ -351,10 +347,6 @@ def main():
 
         # Drop the 'Time_Diff_Minutes' column before displaying
         imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
-
-        # Debugging: Ensure the data passed to plotting function is correct
-        st.write("Day-Ahead Data after Cost Calculation (Preview):", day_ahead_data.head())
-        st.write("Imbalance Data after Cost Calculation (Preview):", imbalance_data_display.head())
 
         # Plot the price graphs
         fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
@@ -387,7 +379,6 @@ def main():
         # Show the data tables
         st.write('### Day-Ahead Data Table:')
         st.dataframe(day_ahead_data)
-
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
@@ -396,6 +387,15 @@ def main():
         st.write('### Power Usage:')
         st.plotly_chart(fig_day_ahead_power)
         st.plotly_chart(fig_imbalance_power)
+
+         # Plot the price graphs
+        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
+        if fig_day_ahead_price is not None and fig_imbalance_price is not None:
+            st.write('### Price Comparison:')
+            st.plotly_chart(fig_day_ahead_price)
+            st.plotly_chart(fig_imbalance_price)
+        else:
+            st.error("Error generating price comparison charts.")
 
 if __name__ == '__main__':
     main()
