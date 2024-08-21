@@ -175,6 +175,9 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
     # Convert gas price to EUR/kWh
     gas_price_kwh = gas_price
     
+    # Debug: Show the gas price being used
+    st.write(f"Gas Price (EUR/kWh): {gas_price_kwh}")
+
     # Add a constant gas price column to the data
     day_ahead_data['Gas_Boiler_Price_EUR_per_kWh'] = gas_price_kwh
     imbalance_data['Gas_Boiler_Price_EUR_per_kWh'] = gas_price_kwh
@@ -182,6 +185,13 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
     # Convert day-ahead and imbalance prices from EUR/MWh to EUR/kWh
     day_ahead_data['E_Boiler_Price_EUR_per_kWh'] = day_ahead_data['Day-Ahead_Price_EUR_per_MWh'] / 1000
     imbalance_data['E_Boiler_Price_EUR_per_kWh'] = imbalance_data['Imbalance_Price_EUR_per_MWh'] / 1000
+
+    # Debug: Display the first few rows of the data
+    st.write("Day-Ahead Data (First 5 rows):")
+    st.write(day_ahead_data.head())
+
+    st.write("Imbalance Data (First 5 rows):")
+    st.write(imbalance_data.head())
 
     # Plot the day-ahead graph
     day_ahead_fig = go.Figure()
