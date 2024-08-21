@@ -171,13 +171,13 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 # this function plots the price graph of day-ahead and imbalance data with plotly
 def plot_price(day_ahead_data, imbalance_data, gas_price):
-    
     # Convert gas price to EUR/kWh
     gas_price_kwh = gas_price
 
     # Add a constant gas price column to the data
     day_ahead_data['Gas_Boiler_Price_EUR_per_kWh'] = gas_price_kwh
-    imbalance_data['Gas_Boiler_Price_EUR_per_kWh'] = gas_price_kwh
+    # For imbalance, multiply the gas price by 4 to adjust for 15-minute intervals
+    imbalance_data['Gas_Boiler_Price_EUR_per_kWh'] = gas_price_kwh * 4
 
     # Convert day-ahead and imbalance prices from EUR/MWh to EUR/kWh
     if 'Day-Ahead_Price_EUR_per_MWh' in day_ahead_data.columns:
@@ -187,10 +187,15 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
         return None, None
 
     if 'Imbalance_Price_EUR_per_MWh' in imbalance_data.columns:
-        imbalance_data['E_Boiler_Price_EUR_per_kWh'] = imbalance_data['Imbalance_Price_EUR_per_MWh'] / 1000
+        # Multiply by 4 because imbalance data is per 15 minutes (1/4 hour)
+        imbalance_data['E_Boiler_Price_EUR_per_kWh'] = (imbalance_data['Imbalance_Price_EUR_per_MWh'] / 1000) * 4
     else:
         st.error("Imbalance_Price_EUR_per_MWh column is missing in imbalance_data.")
         return None, None
+
+    # Correct any negative values that shouldn't be negative
+    day_ahead_data['E_Boiler_Price_EUR_per_kWh'] = day_ahead_data['E_Boiler_Price_EUR_per_kWh'].clip(lower=0)
+    imbalance_data['E_Boiler_Price_EUR_per_kWh'] = imbalance_data['E_Boiler_Price_EUR_per_kWh'].clip(lower=0)
 
     # Plot the day-ahead graph
     day_ahead_fig = go.Figure()
