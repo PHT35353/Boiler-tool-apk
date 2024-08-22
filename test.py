@@ -187,16 +187,30 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, data
 
 
-def calculate_market_profits(day_ahead_data, imbalance_data):
-    # Calculate the profit for the E-boiler only (Gas-boiler has no profit, only cost)
-    day_ahead_data['Profit_Day_Ahead'] = day_ahead_data['Gas_Boiler_Cost_in_Euro'] - day_ahead_data['E_Boiler_Cost_in_Euro']
-    imbalance_data['Profit_Imbalance'] = imbalance_data['Gas_Boiler_Cost_Imbalance_in_Euro'] - imbalance_data['E_Boiler_Cost_Imbalance_in_Euro']
+def determine_profitability(day_ahead_data, imbalance_data):
+    # Define the profitability based on the E-boiler prices
+    def calculate_most_profitable(row):
+        if row['E_Boiler_Cost_in_Euro'] == 0 and row['E_Boiler_Cost_Imbalance_in_Euro'] == 0:
+            return 'No Profit'
+        elif row['E_Boiler_Cost_in_Euro'] > row['E_Boiler_Cost_Imbalance_in_Euro']:
+            return 'Imbalance'
+        elif row['E_Boiler_Cost_in_Euro'] < row['E_Boiler_Cost_Imbalance_in_Euro']:
+            return 'Day-Ahead'
+        else:
+            return 'Equal'
 
-    # Determine which market was more profitable for each timestamp
-    day_ahead_data['Most_Profitable_Market'] = day_ahead_data.apply(
-        lambda row: 'Day-Ahead' if row['Profit_Day_Ahead'] > 0 else 'Imbalance', axis=1)
-    imbalance_data['Most_Profitable_Market'] = imbalance_data.apply(
-        lambda row: 'Day-Ahead' if row['Profit_Imbalance'] > 0 else 'Imbalance', axis=1)
+    # Merge day-ahead and imbalance data on 'Time' to compare
+    combined_data = pd.merge(day_ahead_data[['Time', 'E_Boiler_Cost_in_Euro']],
+                             imbalance_data[['Time', 'E_Boiler_Cost_Imbalance_in_Euro']],
+                             on='Time',
+                             how='inner')
+
+    # Determine the most profitable market
+    combined_data['Most_Profitable_Market'] = combined_data.apply(calculate_most_profitable, axis=1)
+
+    # Merge this result back into the original day-ahead and imbalance dataframes
+    day_ahead_data = day_ahead_data.merge(combined_data[['Time', 'Most_Profitable_Market']], on='Time', how='left')
+    imbalance_data = imbalance_data.merge(combined_data[['Time', 'Most_Profitable_Market']], on='Time', how='left')
 
     return day_ahead_data, imbalance_data
 
