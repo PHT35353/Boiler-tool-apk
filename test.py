@@ -206,7 +206,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
 
 def compare_total_profits(total_profit_day_ahead, total_profit_imbalance):
     # Correctly determine the most profitable market based on the most negative value (smaller number)
-    if total_profit_day_ahead > total_profit_imbalance:
+    if total_profit_day_ahead < total_profit_imbalance:
         return "Day-Ahead"
     else:
         return "Imbalance"
