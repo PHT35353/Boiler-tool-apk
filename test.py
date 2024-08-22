@@ -437,7 +437,33 @@ def main():
             # Display the results per timestamp
             st.write('### Market Profit Comparison Per Timestamp:')
             st.dataframe(merged_data)
-        
+
+        # Display the original results for day-ahead data
+        st.write('### Day-Ahead Data Results:')
+        with st.container():
+            col1, col2, col3, col4, col5 = st.columns([10, 10, 10, 10, 10])
+            col1.write(f"**Total Savings:**\n{total_savings_day_ahead:,.2f} EUR")
+            col2.write(f"**Percentage Savings:**\n{percentage_savings_day_ahead:.2f}%")
+            col3.write(f"**Total Cost:**\n{total_cost_day_ahead:,.2f} EUR")
+            col4.write(f"**E-boiler Cost:**\n{e_boiler_cost_day_ahead:,.2f} EUR")
+            col5.write(f"**Gas-boiler Cost:**\n{gas_boiler_cost_day_ahead:,.2f} EUR")
+
+        st.write('### Day-Ahead Data Table:')
+        st.dataframe(day_ahead_data)
+
+        # Display the original results for imbalance data
+        st.write('### Imbalance Data Results:')
+        with st.container():
+            col6, col7, col8, col9, col10 = st.columns([10, 10, 10, 10, 10])
+            col6.write(f"**Total Savings:**\n{total_savings_imbalance:,.2f} EUR")
+            col7.write(f"**Percentage Savings:**\n{percentage_savings_imbalance:.2f}%")
+            col8.write(f"**Total Cost:**\n{total_cost_imbalance:,.2f} EUR")
+            col9.write(f"**E-boiler Cost:**\n{e_boiler_cost_imbalance:,.2f} EUR")
+            col10.write(f"**Gas-boiler Cost:**\n{gas_boiler_cost_imbalance:,.2f} EUR")
+
+        st.write('### Imbalance Data Table:')
+        st.dataframe(imbalance_data_display)
+
         # Plot the price graphs
         fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
         if fig_day_ahead_price is not None and fig_imbalance_price is not None:
@@ -455,3 +481,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
