@@ -188,6 +188,11 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def determine_profitability(day_ahead_data, imbalance_data):
+    # Ensure the necessary columns are created correctly
+    if 'E_Boiler_Cost_in_Euro' not in day_ahead_data.columns or 'E_Boiler_Cost_Imbalance_in_Euro' not in imbalance_data.columns:
+        st.error("Required cost columns are missing in the dataframes.")
+        return day_ahead_data, imbalance_data
+
     # Define the profitability based on the E-boiler prices
     def calculate_most_profitable(row):
         if row['E_Boiler_Cost_in_Euro'] == 0 and row['E_Boiler_Cost_Imbalance_in_Euro'] == 0:
