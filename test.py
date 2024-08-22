@@ -187,8 +187,23 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, data
 
 
+def calculate_cost_columns(day_ahead_data, imbalance_data, gas_price):
+    # Calculate the cost for the E-boiler and Gas-boiler for day-ahead and imbalance markets
+
+    if 'Day-Ahead_Price_EUR_per_MWh' in day_ahead_data.columns:
+        day_ahead_data['E_Boiler_Cost_in_Euro'] = day_ahead_data['Day-Ahead_Price_EUR_per_MWh'] * (day_ahead_data['Desired Power'] / 1000)
+    else:
+        st.error("Day-Ahead price data is missing. Cannot calculate E-Boiler costs.")
+
+    if 'Imbalance_Price_EUR_per_MWh' in imbalance_data.columns:
+        imbalance_data['E_Boiler_Cost_Imbalance_in_Euro'] = imbalance_data['Imbalance_Price_EUR_per_MWh'] * (imbalance_data['Desired Power'] / 1000)
+    else:
+        st.error("Imbalance price data is missing. Cannot calculate E-Boiler costs.")
+    
+    return day_ahead_data, imbalance_data
+
 def determine_profitability(day_ahead_data, imbalance_data):
-    # Ensure the necessary columns are created correctly
+    # Check if cost columns exist before proceeding
     if 'E_Boiler_Cost_in_Euro' not in day_ahead_data.columns or 'E_Boiler_Cost_Imbalance_in_Euro' not in imbalance_data.columns:
         st.error("Required cost columns are missing in the dataframes.")
         return day_ahead_data, imbalance_data
@@ -414,9 +429,8 @@ def main():
             imbalance_data['Desired Power'] = desired_power
 
         # Calculate costs and power usage
-        day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
-        imbalance_data = imbalance_costs(imbalance_data, gas_price)
-
+        day_ahead_data, imbalance_data = calculate_cost_columns(day_ahead_data, imbalance_data, gas_price)
+        
         day_ahead_data = day_ahead_power(day_ahead_data)
         imbalance_data = imbalance_power(imbalance_data)
         
