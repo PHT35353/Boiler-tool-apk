@@ -187,16 +187,16 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, data
 
 
-def compare_market_profits(day_ahead_data, imbalance_data):
-    # Calculate the profit for E-boiler only (Gas-boiler has no profit, only cost)
+def calculate_market_profits(day_ahead_data, imbalance_data):
+    # Calculate the profit for the E-boiler only (Gas-boiler has no profit, only cost)
     day_ahead_data['Profit_Day_Ahead'] = day_ahead_data['Gas_Boiler_Cost_in_Euro'] - day_ahead_data['E_Boiler_Cost_in_Euro']
     imbalance_data['Profit_Imbalance'] = imbalance_data['Gas_Boiler_Cost_Imbalance_in_Euro'] - imbalance_data['E_Boiler_Cost_Imbalance_in_Euro']
 
     # Determine which market was more profitable for each timestamp
     day_ahead_data['Most_Profitable_Market'] = day_ahead_data.apply(
-        lambda row: 'Day-Ahead' if row['Profit_Day_Ahead'] > row['Profit_Imbalance'] else 'Imbalance', axis=1)
+        lambda row: 'Day-Ahead' if row['Profit_Day_Ahead'] > 0 else 'Imbalance', axis=1)
     imbalance_data['Most_Profitable_Market'] = imbalance_data.apply(
-        lambda row: 'Day-Ahead' if row['Profit_Day_Ahead'] > row['Profit_Imbalance'] else 'Imbalance', axis=1)
+        lambda row: 'Day-Ahead' if row['Profit_Imbalance'] > 0 else 'Imbalance', axis=1)
 
     return day_ahead_data, imbalance_data
 
@@ -414,8 +414,8 @@ def main():
         # Drop the 'Time_Diff_Minutes' column before displaying
         imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
 
-        # Determine which market is more profitable per timestamp and add a column to the dataframes
-        day_ahead_data, imbalance_data_display = compare_market_profits(day_ahead_data, imbalance_data_display)
+        # Calculate the profit and determine the most profitable market
+        day_ahead_data, imbalance_data_display = calculate_market_profits(day_ahead_data, imbalance_data_display)
 
         # Calculate the total profit from each market
         total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
