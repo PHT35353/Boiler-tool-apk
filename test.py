@@ -195,15 +195,16 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
 
     # Create a new column to indicate the most profitable market at each time point
     combined_data = pd.merge(day_ahead_data[['Time', 'Profit_Day_Ahead']], imbalance_data[['Time', 'Profit_Imbalance']], on='Time', how='outer')
-    
+
     # Determine the most profitable market or indicate "No profits"
     combined_data['Most_Profitable_Market'] = combined_data.apply(
-        lambda row: 'Day-Ahead' if row['Profit_Day_Ahead'] > row['Profit_Imbalance'] 
-                    else ('Imbalance' if row['Profit_Imbalance'] > row['Profit_Day_Ahead'] 
+        lambda row: 'Day-Ahead' if (row['Profit_Day_Ahead'] < 0 and (pd.isna(row['Profit_Imbalance']) or row['Profit_Imbalance'] >= 0)) 
+                    else ('Imbalance' if (row['Profit_Imbalance'] < 0 and (pd.isna(row['Profit_Day_Ahead']) or row['Profit_Day_Ahead'] >= 0)) 
                           else ('No profits' if (row['Profit_Day_Ahead'] == 0 and row['Profit_Imbalance'] == 0) 
                                 else 'No profits')), axis=1)
 
     return day_ahead_data, imbalance_data, combined_data
+
 
 
 # this is for plotting the price graph
