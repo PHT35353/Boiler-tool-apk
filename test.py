@@ -418,33 +418,23 @@ def main():
         # Calculate time differences for imbalance data
         imbalance_data = calculate_time_diff_hours(imbalance_data)
 
-        # Calculate savings for both day-ahead and imbalance data
-        total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
-        total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
-	    
-        total_cost_day_ahead = gas_boiler_cost_day_ahead - abs(e_boiler_cost_day_ahead)
-        total_cost_imbalance = gas_boiler_cost_imbalance - abs(e_boiler_cost_imbalance)
-
-        # Drop the 'Time_Diff_Minutes' column before displaying
-        imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
-
-        # Calculate the profit and determine the most profitable market
-        day_ahead_data, imbalance_data_display = calculate_market_profits(day_ahead_data, imbalance_data_display)
+        # Determine which market is more profitable per timestamp
+        day_ahead_data, imbalance_data = determine_profitability(day_ahead_data, imbalance_data)
 
         # Calculate the total profit from each market
-        total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
-        total_profit_imbalance = imbalance_data_display['Profit_Imbalance'].sum()
-        most_profitable_market = 'Day-Ahead' if total_profit_day_ahead > total_profit_imbalance else 'Imbalance'
+        total_profit_day_ahead = day_ahead_data['E_Boiler_Cost_in_Euro'].sum()
+        total_profit_imbalance = imbalance_data['E_Boiler_Cost_Imbalance_in_Euro'].sum()
+        most_profitable_market = 'Day-Ahead' if total_profit_day_ahead < total_profit_imbalance else 'Imbalance'
 
         # Display the original results for day-ahead data
         st.write('### Day-Ahead Data Results:')
         with st.container():
             col1, col2, col3, col4, col5 = st.columns([10, 10, 10, 10, 10])
-            col1.write(f"**Total Savings:**\n{total_savings_day_ahead:,.2f} EUR")
-            col2.write(f"**Percentage Savings:**\n{percentage_savings_day_ahead:.2f}%")
-            col3.write(f"**Total Cost:**\n{total_cost_day_ahead:,.2f} EUR")
-            col4.write(f"**E-boiler Cost:**\n{e_boiler_cost_day_ahead:,.2f} EUR")
-            col5.write(f"**Gas-boiler Cost:**\n{gas_boiler_cost_day_ahead:,.2f} EUR")
+            col1.write(f"**Total Savings:**\n{total_profit_day_ahead:,.2f} EUR")
+            col2.write(f"**Percentage Savings:**\n{(total_profit_day_ahead / (total_profit_day_ahead + total_profit_imbalance) * 100):.2f}%")
+            col3.write(f"**Total Cost:**\n{total_profit_day_ahead:,.2f} EUR")
+            col4.write(f"**E-boiler Cost:**\n{total_profit_day_ahead:,.2f} EUR")
+            col5.write(f"**Gas-boiler Cost:**\n{total_profit_day_ahead:,.2f} EUR")
 
         st.write('### Day-Ahead Data Table:')
         st.dataframe(day_ahead_data)
@@ -453,14 +443,14 @@ def main():
         st.write('### Imbalance Data Results:')
         with st.container():
             col6, col7, col8, col9, col10 = st.columns([10, 10, 10, 10, 10])
-            col6.write(f"**Total Savings:**\n{total_savings_imbalance:,.2f} EUR")
-            col7.write(f"**Percentage Savings:**\n{percentage_savings_imbalance:.2f}%")
-            col8.write(f"**Total Cost:**\n{total_cost_imbalance:,.2f} EUR")
-            col9.write(f"**E-boiler Cost:**\n{e_boiler_cost_imbalance:,.2f} EUR")
-            col10.write(f"**Gas-boiler Cost:**\n{gas_boiler_cost_imbalance:,.2f} EUR")
+            col6.write(f"**Total Savings:**\n{total_profit_imbalance:,.2f} EUR")
+            col7.write(f"**Percentage Savings:**\n{(total_profit_imbalance / (total_profit_day_ahead + total_profit_imbalance) * 100):.2f}%")
+            col8.write(f"**Total Cost:**\n{total_profit_imbalance:,.2f} EUR")
+            col9.write(f"**E-boiler Cost:**\n{total_profit_imbalance:,.2f} EUR")
+            col10.write(f"**Gas-boiler Cost:**\n{total_profit_imbalance:,.2f} EUR")
 
         st.write('### Imbalance Data Table:')
-        st.dataframe(imbalance_data_display)
+        st.dataframe(imbalance_data)
 
         # Display total profits and most profitable market
         st.write(f"### Most Profitable Market Overall: {most_profitable_market}")
@@ -468,7 +458,7 @@ def main():
         st.write(f"Total Profit - Imbalance: {total_profit_imbalance:,.2f} EUR")
 
         # Plot the price graphs
-        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
+        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data, gas_price)
         if fig_day_ahead_price is not None and fig_imbalance_price is not None:
             st.write('### Price Comparison:')
             st.plotly_chart(fig_day_ahead_price)
@@ -477,7 +467,7 @@ def main():
             st.error("Error generating price comparison charts.")
 
         # Show the power plots
-        fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
+        fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data)
         st.write('### Power Usage:')
         st.plotly_chart(fig_day_ahead_power)
         st.plotly_chart(fig_imbalance_power)
