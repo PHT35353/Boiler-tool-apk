@@ -205,7 +205,9 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
             else 'No profits'
         ), axis=1
     )
-   return day_ahead_data, imbalance_data, combined_data
+
+    return day_ahead_data, imbalance_data, combined_data
+
 
 
 def compare_total_profits(total_profit_day_ahead, total_profit_imbalance):
