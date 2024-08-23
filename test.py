@@ -402,7 +402,7 @@ def main():
                     imbalance_data = pd.merge(imbalance_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
                     day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
                     imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
-		print("uploaded_data")
+		
                
 	    else:
                     st.error("Uploaded file must contain 'Time' and 'Desired Power' columns")
