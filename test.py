@@ -392,21 +392,22 @@ def main():
             return
 
         # Process uploaded file if available
+        if st.sidebar.button('Get Data'):
         if uploaded_file is not None:
             try:
                 uploaded_data = pd.read_excel(uploaded_file)
 
                 if 'Time' in uploaded_data.columns and 'Desired Power' in uploaded_data.columns:
                     uploaded_data['Time'] = pd.to_datetime(uploaded_data['Time'])
-                    day_ahead_data = pd.merge(day_ahead_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
-                    imbalance_data = pd.merge(imbalance_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
-                    day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
-                    imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
-		
-               
-	    else:
+                    st.write("### Uploaded File Content:")
+                    st.dataframe(uploaded_data)
+                    
+                else:
                     st.error("Uploaded file must contain 'Time' and 'Desired Power' columns")
-                    return
+            except Exception as e:
+                st.error(f"Error reading the uploaded file: {str(e)}")
+        else:
+            st.error("Please upload a file before proceeding.")
             except Exception as e:
                 st.error(f"Error reading the uploaded file: {str(e)}")
                 return
