@@ -402,7 +402,9 @@ def main():
                     imbalance_data = pd.merge(imbalance_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
                     day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
                     imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
-                else:
+		print("uploaded_data")
+               
+	    else:
                     st.error("Uploaded file must contain 'Time' and 'Desired Power' columns")
                     return
             except Exception as e:
@@ -490,6 +492,6 @@ def main():
         st.write('### Power Usage:')
         st.plotly_chart(fig_day_ahead_power)
         st.plotly_chart(fig_imbalance_power)
-
+         print("uploaded_file")
 if __name__ == '__main__':
     main()
