@@ -164,9 +164,8 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
 
     # Calculate total savings and savings percentage
     total_mixed_cost = (e_boiler_cost) + gas_boiler_cost
-    total_savings =abs(e_boiler_cost)
-    profit = total_gas_boiler_cost_if_only_gas - total_mixed_cost
-    percentage_savings = (profit / total_gas_boiler_cost_if_only_gas * 100) if total_gas_boiler_cost_if_only_gas else 0
+    total_savings = total_gas_boiler_cost_if_only_gas - total_mixed_cost
+    percentage_savings = (total_savings / total_gas_boiler_cost_if_only_gas * 100) if total_gas_boiler_cost_if_only_gas else 0
 
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, total_gas_boiler_cost_if_only_gas
 
@@ -208,9 +207,8 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
     # Calculate total savings and savings percentage
     total_mixed_cost = (e_boiler_cost) + gas_boiler_cost
-    total_savings = abs(e_boiler_cost)
-    profit = total_gas_boiler_cost_if_only_gas - total_mixed_cost
-    percentage_savings = (profit / total_gas_boiler_cost_if_only_gas * 100) if total_gas_boiler_cost_if_only_gas else 0
+    total_savings = total_gas_boiler_cost_if_only_gas - total_mixed_cost
+    percentage_savings = (total_savings / total_gas_boiler_cost_if_only_gas * 100) if total_gas_boiler_cost_if_only_gas else 0
 
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, total_gas_boiler_cost_if_only_gas, data
 
