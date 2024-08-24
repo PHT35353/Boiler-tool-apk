@@ -13,20 +13,27 @@ st.title('Boiler Efficiency and Power Analysis Tool')
 # the requested explanation which elaborates how to use the apk
 st.markdown("""
 ### How it Works:
+
 **Purpose:** Compare the efficiency and costs of E-boilers vs. Gas-boilers based on day-ahead and imbalance electricity prices.
+
 **Inputs:**
 - **Date Range:** Select start and end dates.
 - **Country:** Enter the country code.
 - **Gas Price:** Input the gas price (EUR/kWh).
 - **Desired Power:** Enter your desired power output (kWh).
+
 **Outputs:**
 - Results are shown in interactive plots with a summary of key findings.
+
 **Running the Tool:**
 - A running icon appears next to the “Stop” button in the top right while the tool is processing.
+
 **Stopping the Tool:**
 - Click “Stop” in the top right to stop the tool.
+
 **Note:**
 - Longer date ranges may increase processing time.
+
 **Settings:**
 - Adjust theme or enable wide mode via the settings (three dots at the top right).
 """)
