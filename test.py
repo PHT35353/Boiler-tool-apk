@@ -451,7 +451,7 @@ def main():
 
         # Calculate savings for both day-ahead and imbalance data
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, total_gas_boiler_cost_if_only_gas_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
-        total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, total_gas_boiler_cost_if_only_gas_imbalance = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
+        total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, total_gas_boiler_cost_if_only_gas_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
 
         total_cost_day_ahead = abs(e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
         total_cost_imbalance = abs(e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
@@ -470,26 +470,26 @@ def main():
         # Display the original results for day-ahead data
         st.write('### Day-Ahead Data Results:')
         with st.container():
-            col1, col2, col3, col4, col5, col6 = st.columns([10, 10, 10, 10, 10,10])
+            col1, col2, col3, col4, col5, col6 = st.columns([10, 10, 10, 10, 10, 10])
             col1.write(f"**Total Savings:**\n{total_savings_day_ahead:,.2f} EUR")
             col2.write(f"**Percentage Savings:**\n{percentage_savings_day_ahead:.2f}%")
             col3.write(f"**Total Cost both E-boiler and gas-boiler mixed:**\n{total_cost_day_ahead:,.2f} EUR")
             col4.write(f"**E-boiler Cost:**\n{e_boiler_cost_day_ahead:,.2f} EUR")
-            col5.write(f"**Gas-boiler Cost(when the efficient choice):**\n{gas_boiler_cost_day_ahead:,.2f} EUR")
-            col6.write(f"**Gas-boiler Cost(when only used):**\n{total_gas_boiler_cost_if_only_gas_day_ahead:,.2f} EUR")
+            col5.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_day_ahead:,.2f} EUR")
+            col6.write(f"**Gas-boiler Cost (when only used):**\n{total_gas_boiler_cost_if_only_gas_day_ahead:,.2f} EUR")
         st.write('### Day-Ahead Data Table:')
         st.dataframe(day_ahead_data)
 
         # Display the original results for imbalance data
         st.write('### Imbalance Data Results:')
         with st.container():
-            col7, col8, col9, col10, col11, col12 = st.columns([10, 10, 10, 10, 10,10])
+            col7, col8, col9, col10, col11, col12 = st.columns([10, 10, 10, 10, 10, 10])
             col7.write(f"**Total Savings:**\n{total_savings_imbalance:,.2f} EUR")
             col8.write(f"**Percentage Savings:**\n{percentage_savings_imbalance:.2f}%")
-            col0.write(f"**Total Cost both E-boiler and gas-boiler mixed:**\n{total_cost_imbalance:,.2f} EUR")
+            col9.write(f"**Total Cost both E-boiler and gas-boiler mixed:**\n{total_cost_imbalance:,.2f} EUR")
             col10.write(f"**E-boiler Cost:**\n{e_boiler_cost_imbalance:,.2f} EUR")
-            col11.write(f"**Gas-boiler Cost(when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
-            col12.write(f"**Gas-boiler Cost(when only used):**\n{total_gas_boiler_cost_if_only_gas_imbalance:,.2f} EUR")
+            col11.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
+            col12.write(f"**Gas-boiler Cost (when only used):**\n{total_gas_boiler_cost_if_only_gas_imbalance:,.2f} EUR")
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
@@ -519,4 +519,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
