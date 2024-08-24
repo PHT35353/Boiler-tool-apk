@@ -174,9 +174,9 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     # Calculate the time difference in minutes between consecutive rows
     data['Time_Diff_Minutes'] = data['Time'].diff().dt.total_seconds() / 60.0
 
-    # Set the first row's time difference to a default value (e.g., 15 minutes or the mean of other time differences)
+    # Set the first row's time difference to a default value (e.g., 15 minutes)
     if data['Time_Diff_Minutes'].isnull().any():
-        default_time_diff = data['Time_Diff_Minutes'].mean()  # You can change this to 15 if 15 minutes is a common interval
+        default_time_diff = 15  # Default to 15 minutes if not available
         data['Time_Diff_Minutes'].fillna(default_time_diff, inplace=True)
 
     # Convert gas price from EUR/kWh to EUR/MWh
@@ -189,13 +189,17 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     data['Total_Gas_Boiler_Cost_if_Only_Gas'] = (desired_power_Mwh * (data['Time_Diff_Minutes'] / 60)) * gas_price_Mwh
 
     # Calculate the gas boiler cost based on actual efficiency
-    data['Gas_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power_Mwh * (row['Time_Diff_Minutes'] / 60)) * gas_price_Mwh
-                                                           if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0, axis=1)
+    data['Gas_Boiler_Cost_Imbalance_in_Euro'] = data.apply(
+        lambda row: (desired_power_Mwh * (row['Time_Diff_Minutes'] / 60)) * gas_price_Mwh
+        if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0, axis=1
+    )
     gas_boiler_cost = data['Gas_Boiler_Cost_Imbalance_in_Euro'].sum()
 
     # Calculate the e-boiler cost based on actual efficiency
-    data['E_Boiler_Cost_Imbalance_in_Euro'] = data.apply(lambda row: (desired_power_Mwh * (row['Time_Diff_Minutes'] / 60)) * row['Imbalance_Price_EUR_per_MWh']
-                                                         if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0, axis=1)
+    data['E_Boiler_Cost_Imbalance_in_Euro'] = data.apply(
+        lambda row: (desired_power_Mwh * (row['Time_Diff_Minutes'] / 60)) * row['Imbalance_Price_EUR_per_MWh']
+        if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0, axis=1
+    )
     e_boiler_cost = data['E_Boiler_Cost_Imbalance_in_Euro'].sum()
 
     # Total gas boiler cost if only the gas boiler was used
