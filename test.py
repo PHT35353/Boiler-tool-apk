@@ -11,7 +11,7 @@ API_TOKEN = '0464a296-1b5d-4be6-a037-b3414de630f8'
 client = EntsoePandasClient(api_key=API_TOKEN)
 st.title('Boiler Efficiency and Power Analysis Tool')
 # the requested explanation which elaborates how to use the apk
-st.markdown(How it Works:
+st.markdown("""How it Works:
 
 Purpose: Compare the efficiency and costs of E-boilers vs. Gas-boilers based on day-ahead and imbalance electricity prices.
 
@@ -28,7 +28,7 @@ Outputs:
 - Stopping the Tool:
 - Click “Stop” in the top right to stop the tool.
 - Note: Longer date ranges may increase processing time.
-- Settings: Adjust theme or enable wide mode via the settings (three dots at the top right).
+- Settings: Adjust theme or enable wide mode via the settings (three dots at the top right)."""
 )
 
 
