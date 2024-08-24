@@ -13,20 +13,20 @@ st.title('Boiler Efficiency and Power Analysis Tool')
 # the requested explanation which elaborates how to use the apk
 st.markdown("""How it Works:"""
 
-	"""•Purpose: Compare the efficiency and costs of E-boilers vs. Gas-boilers based on day-ahead and imbalance electricity prices."""<br>
-	"""•Inputs:"""<br>
-	  """•Date Range: Select start and end dates."""<br>
-	  """•Country: Enter the country code."""<br>
-	  """•Gas Price: Input the gas price (EUR/kWh)."""<br>
-	  """•Desired Power: Enter your desired power output (kWh)."""<br>
-	"""•Outputs:"""<br>
-	  """•Results are shown in interactive plots with a summary of key findings."""<br>
-	  """•Running the Tool:"""<br>
-	  """•A running icon appears next to the “Stop” button in the top right while the tool is processing."""<br>
-	"""•Stopping the Tool:"""<br>
-	  """•Click “Stop” in the top right to stop the tool."""<br>
-	  """•Note: Longer date ranges may increase processing time."""<br>
-	  """•Settings: Adjust theme or enable wide mode via the settings (three dots at the top right)."""<br>)
+	"""•Purpose: Compare the efficiency and costs of E-boilers vs. Gas-boilers based on day-ahead and imbalance electricity prices.<br>"""
+	"""•Inputs:<br>"""
+	  """•Date Range: Select start and end dates.<br>"""
+	  """•Country: Enter the country code.<br>"""
+	  """•Gas Price: Input the gas price (EUR/kWh).<br>"""
+	  """•Desired Power: Enter your desired power output (kWh).<br>"""
+	"""•Outputs:<br>"""
+	  """•Results are shown in interactive plots with a summary of key findings.<br>"""
+	  """•Running the Tool:<br>"""
+	  """•A running icon appears next to the “Stop” button in the top right while the tool is processing.<br>"""
+	"""•Stopping the Tool:<br>"""
+	  """•Click “Stop” in the top right to stop the tool.<br>"""
+	  """•Note: Longer date ranges may increase processing time.<br>"""
+	  """•Settings: Adjust theme or enable wide mode via the settings (three dots at the top right).<br>""")
 
 # this function gets the day-ahead prices from entsoe
 def get_day_ahead_data(start, end, country_code):
