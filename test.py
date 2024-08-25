@@ -212,22 +212,12 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, total_gas_boiler_cost_if_only_gas, data
 
-
 def calculate_market_profits(day_ahead_data, imbalance_data):
-    # Ensure 'Time' is a datetime index
-    if not pd.api.types.is_datetime64_any_dtype(imbalance_data['Time']):
-        imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
-
-    imbalance_data.set_index('Time', inplace=True)
-
     # Step 1: Resample the imbalance data to hourly intervals by summing the four 15-minute intervals
-    imbalance_data_resampled = imbalance_data.resample('H').sum()
+    imbalance_data_resampled = imbalance_data.resample('H', on='Time').sum().reset_index()
 
-    # Step 2: Divide each imbalance price by 4 to get the hourly price per MWh
-    imbalance_data_resampled['Imbalance_Price_EUR_per_MWh'] /= 4
-
-    # Reset the index to get 'Time' back as a column
-    imbalance_data_resampled = imbalance_data_resampled.reset_index()
+    
+   
 
     # Step 3: Merge the day-ahead data with the resampled imbalance data on the 'Time' column
     combined_data = pd.merge(day_ahead_data, imbalance_data_resampled, on='Time', suffixes=('_Day_Ahead', '_Imbalance'))
@@ -235,19 +225,20 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     # Step 4: Compare the prices and determine the most profitable market
     combined_data['Most_Profitable_Market'] = combined_data.apply(
         lambda row: (
-            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] == 0 and row['Imbalance_Price_EUR_per_MWh'] > 0 else
-            'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] == 0 and row['Day-Ahead_Price_EUR_per_MWh'] > 0 else
-            'Gas' if row['Day-Ahead_Price_EUR_per_MWh'] > 0 and row['Imbalance_Price_EUR_per_MWh'] > 0 else
-            'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] < 0 and row['Day-Ahead_Price_EUR_per_MWh'] >= 0 else
-            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] < 0 and row['Imbalance_Price_EUR_per_MWh'] >= 0 else
-            'No profits' if row['Day-Ahead_Price_EUR_per_MWh'] == row['Imbalance_Price_EUR_per_MWh'] else
-            'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] < row['Day-Ahead_Price_EUR_per_MWh'] else
+            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] == 0 and row['Imbalance_Price_EUR_per_MWh']/4 > 0 else
+            'Imbalance' if row['Imbalance_Price_EUR_per_MWh']/4 == 0 and row['Day-Ahead_Price_EUR_per_MWh'] > 0 else
+            'Gas' if row['Day-Ahead_Price_EUR_per_MWh'] > 0 and row['Imbalance_Price_EUR_per_MWh']/4 > 0 else
+            'Imbalance' if row['Imbalance_Price_EUR_per_MWh']/4 < 0 and row['Day-Ahead_Price_EUR_per_MWh'] >= 0 else
+            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] < 0 and row['Imbalance_Price_EUR_per_MWh']/4 >= 0 else
+            'No profits' if row['Day-Ahead_Price_EUR_per_MWh'] == row['Imbalance_Price_EUR_per_MWh']/4 else
+            'Imbalance' if row['Imbalance_Price_EUR_per_MWh']/4 < row['Day-Ahead_Price_EUR_per_MWh'] else
             'Day-Ahead'
         ), axis=1
     )
 
     # Return only the relevant columns for display
     return combined_data[['Time', 'Day-Ahead_Price_EUR_per_MWh', 'Imbalance_Price_EUR_per_MWh', 'Most_Profitable_Market']]
+
 
 
 
