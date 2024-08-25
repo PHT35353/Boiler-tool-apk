@@ -443,6 +443,10 @@ def main():
             day_ahead_data['Desired Power'] = desired_power
             imbalance_data['Desired Power'] = desired_power
 
+        # Ensure 'Time' is a datetime index before processing
+        day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
+        imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
+
         # Calculate costs and power usage
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
         imbalance_data = imbalance_costs(imbalance_data, gas_price)
@@ -464,11 +468,11 @@ def main():
         imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
 
         # Calculate the profit and determine the most profitable market
-        day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_data_display)
+        combined_data = calculate_market_profits(day_ahead_data, imbalance_data_display)
 
         # Calculate the total profit from each market
-        total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
-        total_profit_imbalance = imbalance_data_display['Profit_Imbalance'].sum()
+        total_profit_day_ahead = combined_data['Profit_Day_Ahead'].sum()
+        total_profit_imbalance = combined_data['Profit_Imbalance'].sum()
         most_profitable_market = 'Day-Ahead' if total_profit_day_ahead < total_profit_imbalance else 'Imbalance'
 
         # Display the original results for day-ahead data
@@ -523,3 +527,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
