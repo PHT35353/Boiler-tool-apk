@@ -214,7 +214,11 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
-    # First, ensure 'Time' is in datetime format
+    # First, ensure 'Time' is in datetime format and exists
+    if 'Time' not in imbalance_data.columns:
+        st.error("'Time' column is missing in imbalance_data.")
+        return None, None, None
+
     imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
 
     # Separate numeric columns from non-numeric columns
@@ -225,12 +229,9 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     imbalance_data_resampled = imbalance_data.set_index('Time')[numeric_cols].resample('h').mean().reset_index()
 
     # Merge back non-numeric columns using forward fill
-    if 'Time' in imbalance_data.columns:
-        non_numeric_data_resampled = imbalance_data.set_index('Time')[non_numeric_cols].resample('h').ffill().reset_index()
-        imbalance_data_resampled = pd.concat([imbalance_data_resampled, non_numeric_data_resampled.drop(columns=['Time'])], axis=1)
-    else:
-        st.error("'Time' column is missing in imbalance_data.")
-        return None, None, None
+    non_numeric_data_resampled = imbalance_data.set_index('Time')[non_numeric_cols].resample('h').ffill().reset_index()
+
+    imbalance_data_resampled = pd.concat([imbalance_data_resampled, non_numeric_data_resampled.drop(columns=['Time'])], axis=1)
 
     # Calculate profit for both markets considering only negative prices
     day_ahead_data['Profit_Day_Ahead'] = day_ahead_data.apply(
@@ -253,6 +254,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     )
 
     return day_ahead_data, imbalance_data_resampled, combined_data
+
 
 
 
@@ -411,7 +413,7 @@ def plot_power(day_ahead_data, imbalance_data):
 # The compare_total_profits function is removed
 
 def main():
-    # This function makes the sidebar of settings
+    # This function creates the sidebar for settings
     st.sidebar.title('Settings')
     start_date = st.sidebar.date_input('Start date', pd.to_datetime('2023-01-01'))
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
@@ -490,7 +492,7 @@ def main():
         # Display the original results for day-ahead data
         st.write('### Day-Ahead Data Results:')
         with st.container():
-            col1, col2, col3, col4, col5, col6 = st.columns([10, 10, 10, 10, 10, 10])
+            col1, col2, col3, col4, col5, col6 = st.columns(6)
             col1.write(f"**Total Savings:**\n{total_savings_day_ahead:,.2f} EUR")
             col2.write(f"**Percentage Savings:**\n{percentage_savings_day_ahead:.2f}%")
             col3.write(f"**Total Cost both E-boiler and gas-boiler mixed:**\n{total_cost_day_ahead:,.2f} EUR")
@@ -503,7 +505,7 @@ def main():
         # Display the original results for imbalance data
         st.write('### Imbalance Data Results:')
         with st.container():
-            col7, col8, col9, col10, col11, col12 = st.columns([10, 10, 10, 10, 10, 10])
+            col7, col8, col9, col10, col11, col12 = st.columns(6)
             col7.write(f"**Total Savings:**\n{total_savings_imbalance:,.2f} EUR")
             col8.write(f"**Percentage Savings:**\n{percentage_savings_imbalance:.2f}%")
             col9.write(f"**Total Cost both E-boiler and gas-boiler mixed:**\n{total_cost_imbalance:,.2f} EUR")
