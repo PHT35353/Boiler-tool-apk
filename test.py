@@ -215,30 +215,23 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 def calculate_market_profits(day_ahead_data, imbalance_data):
     # Step 1: Resample the imbalance data to hourly intervals by summing the four 15-minute intervals
     imbalance_data_resampled = imbalance_data.resample('H', on='Time').sum().reset_index()
-    # Step 3: Merge the day-ahead data with the resampled imbalance data on the 'Time' column
+
+    # Step 2: Merge the day-ahead data with the resampled imbalance data on the 'Time' column
     combined_data = pd.merge(day_ahead_data, imbalance_data_resampled, on='Time', suffixes=('_Day_Ahead', '_Imbalance'))
 
-    # Step 4: Compare the prices and determine the most profitable market
+    # Step 3: Compare the E-boiler costs and determine the most profitable market
     combined_data['Most_Profitable_Market'] = combined_data.apply(
         lambda row: (
-            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] == 0 and row['Imbalance_Price_EUR_per_MWh'] > 0 else
-            'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] == 0 and row['Day-Ahead_Price_EUR_per_MWh'] > 0 else
-            'Gas' if row['Day-Ahead_Price_EUR_per_MWh'] > 0 and row['Imbalance_Price_EUR_per_MWh'] > 0 else
-            'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] < 0 and row['Day-Ahead_Price_EUR_per_MWh'] >= 0 else
-            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] < 0 and row['Imbalance_Price_EUR_per_MWh'] >= 0 else
-            'No profits' if row['Day-Ahead_Price_EUR_per_MWh'] == row['Imbalance_Price_EUR_per_MWh'] else
-            'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] < row['Day-Ahead_Price_EUR_per_MWh'] else
-            'Day-Ahead'
+            'Day-Ahead' if row['E_Boiler_Cost_in_Euro_Day_Ahead'] < row['E_Boiler_Cost_Imbalance_in_Euro'] else
+            'Imbalance' if row['E_Boiler_Cost_Imbalance_in_Euro'] < row['E_Boiler_Cost_in_Euro_Day_Ahead'] else
+            'Gas' if row['E_Boiler_Cost_in_Euro_Day_Ahead'] == 0 and row['E_Boiler_Cost_Imbalance_in_Euro'] == 0 else
+            'Day-Ahead' if row['E_Boiler_Cost_in_Euro_Day_Ahead'] <= row['E_Boiler_Cost_Imbalance_in_Euro'] else
+            'Imbalance'
         ), axis=1
     )
 
     # Return only the relevant columns for display
-    return combined_data[['Time', 'Day-Ahead_Price_EUR_per_MWh', 'Imbalance_Price_EUR_per_MWh', 'Most_Profitable_Market']]
-
-
-
-
-
+    return combined_data[['Time', 'E_Boiler_Cost_in_Euro_Day_Ahead', 'E_Boiler_Cost_Imbalance_in_Euro', 'Most_Profitable_Market']]
 
 # this is for plotting the price graph
 def plot_price(day_ahead_data, imbalance_data, gas_price):
@@ -517,5 +510,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
