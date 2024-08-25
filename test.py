@@ -226,11 +226,11 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     non_numeric_cols = imbalance_data.select_dtypes(exclude=[np.number]).columns
 
     # Resample numeric columns to hourly intervals
-    imbalance_data_resampled = imbalance_data.set_index('Time')[numeric_cols].resample('h').mean().reset_index()
+    imbalance_data_resampled = imbalance_data.set_index('Time')[numeric_cols].resample('H').mean().reset_index()
 
     # Only process non-numeric columns if they exist
-    if not non_numeric_cols.empty:
-        non_numeric_data_resampled = imbalance_data.set_index('Time')[non_numeric_cols].resample('h').ffill().reset_index()
+    if len(non_numeric_cols) > 0:
+        non_numeric_data_resampled = imbalance_data.set_index('Time')[non_numeric_cols].resample('H').ffill().reset_index()
         imbalance_data_resampled = pd.concat([imbalance_data_resampled, non_numeric_data_resampled.drop(columns=['Time'])], axis=1)
 
     # Calculate profit for both markets considering only negative prices
@@ -254,6 +254,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     )
 
     return day_ahead_data, imbalance_data_resampled, combined_data
+
 
 
 
