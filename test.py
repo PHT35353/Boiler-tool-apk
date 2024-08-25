@@ -226,15 +226,20 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     # Step 4: Compare the prices and determine the most profitable market
     combined_data['Most_Profitable_Market'] = combined_data.apply(
         lambda row: (
-            'Gas' if row['Day-Ahead_Price_EUR_per_MWh'] == 0 and row['Imbalance_Price_EUR_per_MWh'] == 0 else
-            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] < row['Imbalance_Price_EUR_per_MWh'] else
+            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] == 0 and row['Imbalance_Price_EUR_per_MWh'] > 0 else
+            'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] == 0 and row['Day-Ahead_Price_EUR_per_MWh'] > 0 else
+            'Gas' if row['Day-Ahead_Price_EUR_per_MWh'] > 0 and row['Imbalance_Price_EUR_per_MWh'] > 0 else
+            'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] < 0 and row['Day-Ahead_Price_EUR_per_MWh'] >= 0 else
+            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] < 0 and row['Imbalance_Price_EUR_per_MWh'] >= 0 else
+            'No profits' if row['Day-Ahead_Price_EUR_per_MWh'] == row['Imbalance_Price_EUR_per_MWh'] else
             'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] < row['Day-Ahead_Price_EUR_per_MWh'] else
-            'No profits'
+            'Day-Ahead'
         ), axis=1
     )
 
     # Return only the relevant columns for display
     return combined_data[['Time', 'Day-Ahead_Price_EUR_per_MWh', 'Imbalance_Price_EUR_per_MWh', 'Most_Profitable_Market']]
+
 
 
 # this is for plotting the price graph
