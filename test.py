@@ -214,6 +214,10 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
+    # First, aggregate the imbalance data to an hourly level to match the day-ahead data frequency
+    imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
+    imbalance_data = imbalance_data.set_index('Time').resample('H').mean().reset_index()
+
     # Calculate profit for both markets considering only negative prices
     day_ahead_data['Profit_Day_Ahead'] = day_ahead_data.apply(
         lambda row: row['Gas_Boiler_Cost_in_Euro'] - abs(row['E_Boiler_Cost_in_Euro']) if row['Day-Ahead_Price_EUR_per_MWh'] < 0 else None, axis=1)
@@ -233,6 +237,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     )
 
     return day_ahead_data, imbalance_data, combined_data
+
 
 
 
