@@ -223,7 +223,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     # Step 1: Resample the imbalance data to hourly intervals by summing the four 15-minute intervals
     imbalance_data_resampled = imbalance_data.resample('H').sum()
 
-    # Step 2: Divide the summed imbalance prices by 4 to get the hourly average price per MWh
+    # Step 2: Divide each imbalance price by 4 to get the hourly price per MWh
     imbalance_data_resampled['Imbalance_Price_EUR_per_MWh'] /= 4
 
     # Reset the index to get 'Time' back as a column
@@ -248,6 +248,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
 
     # Return only the relevant columns for display
     return combined_data[['Time', 'Day-Ahead_Price_EUR_per_MWh', 'Imbalance_Price_EUR_per_MWh', 'Most_Profitable_Market']]
+
 
 
 
