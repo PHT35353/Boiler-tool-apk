@@ -217,6 +217,9 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     # Resample the imbalance data to hourly intervals by summing the four 15-minute intervals
     imbalance_data_resampled = imbalance_data.resample('H', on='Time').sum().reset_index()
 
+    # Correct the imbalance prices by dividing them by 4 (since resampling already sums up the values)
+    imbalance_data_resampled['Imbalance_Price_EUR_per_MWh'] /= 4
+
     # Merge the day-ahead data with the resampled imbalance data on the 'Time' column
     combined_data = pd.merge(day_ahead_data, imbalance_data_resampled, on='Time', suffixes=('_Day_Ahead', '_Imbalance'))
 
@@ -224,26 +227,14 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     combined_data['Most_Profitable_Market'] = combined_data.apply(
         lambda row: (
             'Gas' if row['Day-Ahead_Price_EUR_per_MWh'] == 0 and row['Imbalance_Price_EUR_per_MWh'] == 0 else
-            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] < (row['Imbalance_Price_EUR_per_MWh'] / 4) else
-            'Imbalance' if (row['Imbalance_Price_EUR_per_MWh'] / 4) < row['Day-Ahead_Price_EUR_per_MWh'] else
+            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] < row['Imbalance_Price_EUR_per_MWh'] else
+            'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] < row['Day-Ahead_Price_EUR_per_MWh'] else
             'No profits'
         ), axis=1
     )
 
     # Return only the relevant columns for display
     return combined_data[['Time', 'Day-Ahead_Price_EUR_per_MWh', 'Imbalance_Price_EUR_per_MWh', 'Most_Profitable_Market']]
-
-
-
-
-def compare_total_profits(total_profit_day_ahead, total_profit_imbalance):
-    # Correctly determine the most profitable market based on the most negative value (smallest number)
-    if total_profit_day_ahead < total_profit_imbalance:
-        return "Day-Ahead"
-    elif total_profit_imbalance < total_profit_day_ahead:
-        return "Imbalance"
-    else:
-        return "No Profits"
 
 # this is for plotting the price graph
 def plot_price(day_ahead_data, imbalance_data, gas_price):
@@ -498,7 +489,6 @@ def main():
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
-
         # Display the simplified comparison of profitability between day-ahead and imbalance
         st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
         st.dataframe(combined_data)
@@ -523,3 +513,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
