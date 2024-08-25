@@ -219,7 +219,17 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     # Step 2: Merge the day-ahead data with the resampled imbalance data on the 'Time' column
     combined_data = pd.merge(day_ahead_data, imbalance_data_resampled, on='Time', suffixes=('_Day_Ahead', '_Imbalance'))
 
-    # Step 3: Compare the E-boiler costs and determine the most profitable market
+    # Step 3: Ensure that the required columns exist before comparison
+    if 'E_Boiler_Cost_in_Euro' in combined_data.columns and 'E_Boiler_Cost_in_Euro_Imbalance' in combined_data.columns:
+        combined_data.rename(columns={
+            'E_Boiler_Cost_in_Euro': 'E_Boiler_Cost_in_Euro_Day_Ahead',
+            'E_Boiler_Cost_in_Euro_Imbalance': 'E_Boiler_Cost_Imbalance_in_Euro'
+        }, inplace=True)
+    else:
+        st.error("The required columns for E-boiler costs are missing.")
+        return pd.DataFrame()
+
+    # Step 4: Compare the E-boiler costs and determine the most profitable market
     combined_data['Most_Profitable_Market'] = combined_data.apply(
         lambda row: (
             'Day-Ahead' if row['E_Boiler_Cost_in_Euro_Day_Ahead'] < row['E_Boiler_Cost_Imbalance_in_Euro'] else
@@ -232,6 +242,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
 
     # Return only the relevant columns for display
     return combined_data[['Time', 'E_Boiler_Cost_in_Euro_Day_Ahead', 'E_Boiler_Cost_Imbalance_in_Euro', 'Most_Profitable_Market']]
+
 
 # this is for plotting the price graph
 def plot_price(day_ahead_data, imbalance_data, gas_price):
