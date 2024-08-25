@@ -59,14 +59,14 @@ def calculate_time_diff_hours(data):
     data['Time_Diff_Minutes'] = data['Time'].diff().dt.total_seconds() / 60.0
 
     # Set the first row's time difference to a default value (e.g., 15 minutes)
-    if data['Time_Diff_Minutes'].isnull().any():
-        default_time_diff = 15  # Default to 15 minutes if not available
-        data['Time_Diff_Minutes'].fillna(default_time_diff, inplace=True)
+    default_time_diff = 15  # Default to 15 minutes if not available
+    data['Time_Diff_Minutes'] = data['Time_Diff_Minutes'].fillna(default_time_diff)
 
     # Convert to hours
     data['Time_Diff_Hours'] = data['Time_Diff_Minutes'] / 60.0
 
     return data
+
 
 
 # this function gets the imbalance prices from entsoe
@@ -222,12 +222,15 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     non_numeric_cols = imbalance_data.select_dtypes(exclude=[np.number]).columns
 
     # Resample numeric columns to hourly intervals
-    imbalance_data_resampled = imbalance_data.set_index('Time')[numeric_cols].resample('H').mean().reset_index()
+    imbalance_data_resampled = imbalance_data.set_index('Time')[numeric_cols].resample('h').mean().reset_index()
 
     # Merge back non-numeric columns using forward fill
-    if len(non_numeric_cols) > 0:
-        non_numeric_data_resampled = imbalance_data.set_index('Time')[non_numeric_cols].resample('H').ffill().reset_index()
+    if 'Time' in imbalance_data.columns:
+        non_numeric_data_resampled = imbalance_data.set_index('Time')[non_numeric_cols].resample('h').ffill().reset_index()
         imbalance_data_resampled = pd.concat([imbalance_data_resampled, non_numeric_data_resampled.drop(columns=['Time'])], axis=1)
+    else:
+        st.error("'Time' column is missing in imbalance_data.")
+        return None, None, None
 
     # Calculate profit for both markets considering only negative prices
     day_ahead_data['Profit_Day_Ahead'] = day_ahead_data.apply(
@@ -250,6 +253,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     )
 
     return day_ahead_data, imbalance_data_resampled, combined_data
+
 
 
 
