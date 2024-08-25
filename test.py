@@ -469,14 +469,18 @@ def main():
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, total_gas_boiler_cost_if_only_gas_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
         total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, total_gas_boiler_cost_if_only_gas_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
 
-        total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
-        total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
+        total_cost_day_ahead = e_boiler_cost_day_ahead + gas_boiler_cost_day_ahead
+        total_cost_imbalance = e_boiler_cost_imbalance + gas_boiler_cost_imbalance
 
         # Drop the 'Time_Diff_Minutes' column before displaying
         imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
 
         # Calculate the profit and determine the most profitable market
         day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_data_display)
+
+        if day_ahead_data is None or imbalance_data_display is None or combined_data is None:
+            st.error("Error in calculating market profits. Please check the data and try again.")
+            return
 
         # Calculate the total profit from each market
         total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
@@ -535,4 +539,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
