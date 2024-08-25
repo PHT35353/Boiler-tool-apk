@@ -407,7 +407,7 @@ def plot_power(day_ahead_data, imbalance_data):
 
 
 def main():
-    # This function makes the sidebar of settings
+    # Sidebar settings
     st.sidebar.title('Settings')
     start_date = st.sidebar.date_input('Start date', pd.to_datetime('2023-01-01'))
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
@@ -421,33 +421,18 @@ def main():
         day_ahead_data = get_day_ahead_data(start_date, end_date, country_code)
         imbalance_data = get_imbalance_data(start_date, end_date, country_code)
 
-        # Check if data is empty and display an error if necessary
-        if day_ahead_data.empty:
-            st.error("No day-ahead data available")
-            return
-        if imbalance_data.empty:
-            st.error("No imbalance data available")
-            return
-
         # Process uploaded file if available
         if uploaded_file is not None:
-            try:
-                uploaded_data = pd.read_excel(uploaded_file)
+            uploaded_data = pd.read_excel(uploaded_file)
+            uploaded_data['Time'] = pd.to_datetime(uploaded_data['Time'])
 
-                if 'Time' in uploaded_data.columns and 'Desired Power' in uploaded_data.columns:
-                    uploaded_data['Time'] = pd.to_datetime(uploaded_data['Time'])
-                    day_ahead_data = pd.merge(day_ahead_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
-                    imbalance_data = pd.merge(imbalance_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
-                    day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
-                    imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
-                else:
-                    st.error("Uploaded file must contain 'Time' and 'Desired Power' columns")
-                    return
-            except Exception as e:
-                st.error(f"Error reading the uploaded file: {str(e)}")
-                return
+            day_ahead_data = pd.merge(day_ahead_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
+            imbalance_data = pd.merge(imbalance_data, uploaded_data[['Time', 'Desired Power']], on='Time', how='left')
+
+            day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
+            imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
         else:
-            # If no file uploaded, use the desired power input
+            # Use the desired power input if no file is uploaded
             day_ahead_data['Desired Power'] = desired_power
             imbalance_data['Desired Power'] = desired_power
 
@@ -465,8 +450,8 @@ def main():
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, total_gas_boiler_cost_if_only_gas_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
         total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, total_gas_boiler_cost_if_only_gas_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
 
-        total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
-        total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
+        total_cost_day_ahead = e_boiler_cost_day_ahead + gas_boiler_cost_day_ahead
+        total_cost_imbalance = e_boiler_cost_imbalance + gas_boiler_cost_imbalance
 
         # Drop the 'Time_Diff_Minutes' column before displaying
         imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
@@ -531,4 +516,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
