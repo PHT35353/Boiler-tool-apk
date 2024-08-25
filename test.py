@@ -214,16 +214,16 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
-    # Resample the imbalance data to hourly intervals by summing the four 15-minute intervals
+    # Step 1: Resample the imbalance data to hourly intervals by summing the four 15-minute intervals
     imbalance_data_resampled = imbalance_data.resample('H', on='Time').sum().reset_index()
 
-    # Correct the imbalance prices by dividing them by 4 (since resampling already sums up the values)
+    # Step 2: Divide the summed imbalance prices by 4 to get the hourly average price per MWh
     imbalance_data_resampled['Imbalance_Price_EUR_per_MWh'] /= 4
 
-    # Merge the day-ahead data with the resampled imbalance data on the 'Time' column
+    # Step 3: Merge the day-ahead data with the resampled imbalance data on the 'Time' column
     combined_data = pd.merge(day_ahead_data, imbalance_data_resampled, on='Time', suffixes=('_Day_Ahead', '_Imbalance'))
 
-    # Correctly compare the prices and determine the most profitable market
+    # Step 4: Compare the prices and determine the most profitable market
     combined_data['Most_Profitable_Market'] = combined_data.apply(
         lambda row: (
             'Gas' if row['Day-Ahead_Price_EUR_per_MWh'] == 0 and row['Imbalance_Price_EUR_per_MWh'] == 0 else
@@ -235,6 +235,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
 
     # Return only the relevant columns for display
     return combined_data[['Time', 'Day-Ahead_Price_EUR_per_MWh', 'Imbalance_Price_EUR_per_MWh', 'Most_Profitable_Market']]
+
 
 # this is for plotting the price graph
 def plot_price(day_ahead_data, imbalance_data, gas_price):
@@ -513,4 +514,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
