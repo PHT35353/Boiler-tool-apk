@@ -212,11 +212,7 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, total_gas_boiler_cost_if_only_gas, data
 
-def resample_imbalance_data(imbalance_data):
-    # Resample imbalance data to hourly by averaging the prices
-    imbalance_data = imbalance_data.resample('H', on='Time').mean().reset_index()
-    return imbalance_data
-    
+
 def calculate_market_profits(day_ahead_data, imbalance_data):
     # Calculate profit for both markets considering only negative prices
     day_ahead_data['Profit_Day_Ahead'] = day_ahead_data.apply(
@@ -421,9 +417,6 @@ def main():
             st.error("No imbalance data available")
             return
 
-        # Resample imbalance data to match the hourly frequency of day-ahead data
-        imbalance_data = resample_imbalance_data(imbalance_data)
-
         # Process uploaded file if available
         if uploaded_file is not None:
             try:
@@ -453,15 +446,21 @@ def main():
         day_ahead_data = day_ahead_power(day_ahead_data)
         imbalance_data = imbalance_power(imbalance_data)
 
-        # Calculate savings for both day-ahead and resampled imbalance data
+        # Calculate time differences for imbalance data
+        imbalance_data = calculate_time_diff_hours(imbalance_data)
+
+        # Calculate savings for both day-ahead and imbalance data
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, total_gas_boiler_cost_if_only_gas_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
         total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, total_gas_boiler_cost_if_only_gas_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
 
         total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
         total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
 
+        # Drop the 'Time_Diff_Minutes' column before displaying
+        imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
+
         # Calculate the profit and determine the most profitable market
-        day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_data)
+        day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_data_display)
 
         # Calculate the total profit from each market
         total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
@@ -518,12 +517,5 @@ def main():
         st.plotly_chart(fig_day_ahead_power)
         st.plotly_chart(fig_imbalance_power)
 
-# Function to resample the imbalance data to hourly frequency
-def resample_imbalance_data(imbalance_data):
-    # Resample imbalance data to hourly by averaging the prices
-    imbalance_data = imbalance_data.resample('H', on='Time').mean().reset_index()
-    return imbalance_data
-
 if __name__ == '__main__':
     main()
-
