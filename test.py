@@ -214,8 +214,9 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
-    # Resample imbalance data to hourly intervals, taking the average of the four 15-minute intervals
-    imbalance_data_resampled = imbalance_data.resample('H', on='Time').mean().reset_index()
+    # First, resample the imbalance data to hourly intervals by summing up the four 15-minute intervals
+    imbalance_data['Imbalance_Price_EUR_per_MWh'] = imbalance_data['Imbalance_Price_EUR_per_MWh'] / 4  # Adjust 15-min data to hourly equivalent
+    imbalance_data_resampled = imbalance_data.resample('H', on='Time').sum().reset_index()
 
     # Merge the day-ahead data with the resampled imbalance data on the 'Time' column
     combined_data = pd.merge(day_ahead_data, imbalance_data_resampled, on='Time', suffixes=('_Day_Ahead', '_Imbalance'))
@@ -236,6 +237,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     )
 
     return combined_data
+
 
 
 
