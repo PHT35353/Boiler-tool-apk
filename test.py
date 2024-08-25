@@ -214,30 +214,34 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
-    # Ensure the 'Time' column is the datetime index before resampling
-    imbalance_data.set_index('Time', inplace=True)
-
-    # Divide each 15-minute MWh data point by 4 to convert to an hourly equivalent
+    # Divide each 15-minute MWh data point by 4 to convert to hourly equivalent
     imbalance_data['Imbalance_Price_EUR_per_MWh'] = imbalance_data['Imbalance_Price_EUR_per_MWh'] / 4
     
-    # Resample the imbalance data to hourly intervals by taking the mean of the four 15-minute intervals
-    imbalance_data_resampled = imbalance_data.resample('H').mean().reset_index()
+    # Resample the imbalance data to hourly intervals by summing the four 15-minute intervals
+    imbalance_data_resampled = imbalance_data.resample('H', on='Time').sum().reset_index()
 
     # Merge the day-ahead data with the resampled imbalance data on the 'Time' column
     combined_data = pd.merge(day_ahead_data, imbalance_data_resampled, on='Time', suffixes=('_Day_Ahead', '_Imbalance'))
 
-    # Determine the more profitable market based on the lower price
+    # Calculate profit for both markets considering only negative prices
+    combined_data['Profit_Day_Ahead'] = combined_data.apply(
+        lambda row: row['Gas_Boiler_Cost_in_Euro'] - abs(row['E_Boiler_Cost_in_Euro']) if row['Day-Ahead_Price_EUR_per_MWh'] < 0 else 0, axis=1)
+    combined_data['Profit_Imbalance'] = combined_data.apply(
+        lambda row: row['Gas_Boiler_Cost_Imbalance_in_Euro'] - abs(row['E_Boiler_Cost_in_Euro']) if row['Imbalance_Price_EUR_per_MWh'] < 0 else 0, axis=1)
+
+    # Adjust the most profitable market logic
     combined_data['Most_Profitable_Market'] = combined_data.apply(
         lambda row: (
             'Gas' if row['Day-Ahead_Price_EUR_per_MWh'] == 0 and row['Imbalance_Price_EUR_per_MWh'] == 0 else
-            'Day-Ahead' if row['Day-Ahead_Price_EUR_per_MWh'] < row['Imbalance_Price_EUR_per_MWh'] else
-            'Imbalance' if row['Imbalance_Price_EUR_per_MWh'] < row['Day-Ahead_Price_EUR_per_MWh'] else
+            'Day-Ahead' if (row['Profit_Day_Ahead'] > row['Profit_Imbalance']) else
+            'Imbalance' if (row['Profit_Imbalance'] > row['Profit_Day_Ahead']) else
             'No profits'
         ), axis=1
     )
 
     # Return only the relevant columns for display
     return combined_data[['Time', 'Day-Ahead_Price_EUR_per_MWh', 'Imbalance_Price_EUR_per_MWh', 'Most_Profitable_Market']]
+
 
 
 
@@ -444,15 +448,9 @@ def main():
             day_ahead_data['Desired Power'] = desired_power
             imbalance_data['Desired Power'] = desired_power
 
-        # Ensure 'Time' is a datetime column and set as index for resampling
+        # Ensure 'Time' is a datetime index before processing
         day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
         imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
-
-        # Check data types for debugging
-        st.write("Day-Ahead Data Types:")
-        st.write(day_ahead_data.dtypes)
-        st.write("Imbalance Data Types:")
-        st.write(imbalance_data.dtypes)
 
         # Calculate costs and power usage
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
@@ -463,6 +461,13 @@ def main():
 
         # Calculate time differences for imbalance data
         imbalance_data = calculate_time_diff_hours(imbalance_data)
+
+        # Calculate savings for both day-ahead and imbalance data
+        total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, total_gas_boiler_cost_if_only_gas_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
+        total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, total_gas_boiler_cost_if_only_gas_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
+
+        total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
+        total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
 
         # Drop the 'Time_Diff_Minutes' column before displaying
         imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
@@ -526,4 +531,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
