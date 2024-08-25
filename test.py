@@ -224,8 +224,10 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     # Resample numeric columns to hourly intervals, including the 'Time' column
     imbalance_data_resampled = imbalance_data.set_index('Time')[numeric_cols].resample('H').mean().reset_index()
 
-    # Merge back non-numeric columns (use forward fill to propagate the last valid observation)
-    imbalance_data_resampled[non_numeric_cols] = imbalance_data.set_index('Time')[non_numeric_cols].resample('H').ffill().reset_index(drop=True)
+    # Check if there are any non-numeric columns to process
+    if len(non_numeric_cols) > 0:
+        # Merge back non-numeric columns (use forward fill to propagate the last valid observation)
+        imbalance_data_resampled[non_numeric_cols] = imbalance_data.set_index('Time')[non_numeric_cols].resample('H').ffill().reset_index(drop=True)
 
     # Calculate profit for both markets considering only negative prices
     day_ahead_data['Profit_Day_Ahead'] = day_ahead_data.apply(
@@ -246,6 +248,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     )
 
     return day_ahead_data, imbalance_data_resampled, combined_data
+
 
 
 # this is for plotting the price graph
