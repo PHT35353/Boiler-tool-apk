@@ -221,11 +221,11 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     numeric_cols = imbalance_data.select_dtypes(include=[np.number]).columns
     non_numeric_cols = imbalance_data.select_dtypes(exclude=[np.number]).columns
 
-    # Resample numeric columns to hourly intervals
+    # Resample numeric columns to hourly intervals, including the 'Time' column
     imbalance_data_resampled = imbalance_data.set_index('Time')[numeric_cols].resample('H').mean().reset_index()
 
     # Merge back non-numeric columns (use forward fill to propagate the last valid observation)
-    imbalance_data_resampled[non_numeric_cols] = imbalance_data.set_index('Time')[non_numeric_cols].resample('H').ffill().reset_index()[non_numeric_cols]
+    imbalance_data_resampled[non_numeric_cols] = imbalance_data.set_index('Time')[non_numeric_cols].resample('H').ffill().reset_index(drop=True)
 
     # Calculate profit for both markets considering only negative prices
     day_ahead_data['Profit_Day_Ahead'] = day_ahead_data.apply(
@@ -247,18 +247,6 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
 
     return day_ahead_data, imbalance_data_resampled, combined_data
 
-
-
-
-
-def compare_total_profits(total_profit_day_ahead, total_profit_imbalance):
-    # Correctly determine the most profitable market based on the most negative value (smallest number)
-    if total_profit_day_ahead < total_profit_imbalance:
-        return "Day-Ahead"
-    elif total_profit_imbalance < total_profit_day_ahead:
-        return "Imbalance"
-    else:
-        return "No Profits"
 
 # this is for plotting the price graph
 def plot_price(day_ahead_data, imbalance_data, gas_price):
@@ -409,6 +397,8 @@ def plot_power(day_ahead_data, imbalance_data):
     return day_ahead_fig, imbalance_fig
 
 
+# The compare_total_profits function is removed
+
 def main():
     # This function makes the sidebar of settings
     st.sidebar.title('Settings')
@@ -534,3 +524,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
