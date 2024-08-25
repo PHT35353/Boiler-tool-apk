@@ -229,29 +229,23 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
         lambda row: row['Gas_Boiler_Cost_Imbalance_in_Euro'] - abs(row['E_Boiler_Cost_Imbalance_in_Euro']) if row['Imbalance_Price_EUR_per_MWh'] < 0 else None, axis=1
     )
 
-    # Resample only the Profit_Imbalance column to hourly intervals
+    # Resample only the Profit_Imbalance column to hourly intervals for comparison table
     imbalance_profit_resampled = imbalance_data.set_index('Time')['Profit_Imbalance'].resample('H').sum().reset_index()
 
-    # Merge the resampled Profit_Imbalance back with the original imbalance data
-    imbalance_data = pd.merge(imbalance_data, imbalance_profit_resampled, on='Time', how='left', suffixes=('', '_Hourly'))
-
-    # Keep only the hourly profit column for further analysis
-    imbalance_data['Profit_Imbalance'] = imbalance_data['Profit_Imbalance_Hourly']
-    imbalance_data.drop(columns=['Profit_Imbalance_Hourly'], inplace=True)
-
-    # Merge day-ahead and imbalance data on 'Time'
-    combined_data = pd.merge(day_ahead_data[['Time', 'Profit_Day_Ahead']], imbalance_data[['Time', 'Profit_Imbalance']], on='Time', how='outer')
+    # Merge day-ahead and resampled imbalance data on 'Time' for profit comparison
+    combined_data = pd.merge(day_ahead_data[['Time', 'Profit_Day_Ahead']], imbalance_profit_resampled[['Time', 'Profit_Imbalance']], on='Time', how='outer')
 
     # Determine the most profitable market, considering None and zero values properly
     combined_data['Most_Profitable_Market'] = combined_data.apply(
         lambda row: (
             'Day-Ahead' if (pd.notna(row['Profit_Day_Ahead']) and (pd.isna(row['Profit_Imbalance']) or row['Profit_Day_Ahead'] < row['Profit_Imbalance']))
             else 'Imbalance' if (pd.notna(row['Profit_Imbalance']) and (pd.isna(row['Profit_Day_Ahead']) or row['Profit_Imbalance'] < row['Profit_Day_Ahead']))
-            else 'gas'
+            else 'Gas'
         ), axis=1
     )
 
     return day_ahead_data, imbalance_data, combined_data
+
 
 
 
