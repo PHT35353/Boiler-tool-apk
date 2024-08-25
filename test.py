@@ -214,8 +214,10 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
-    # First, resample the imbalance data to hourly intervals by summing up the four 15-minute intervals
-    imbalance_data['Imbalance_Price_EUR_per_MWh'] = imbalance_data['Imbalance_Price_EUR_per_MWh'] / 4  # Adjust 15-min data to hourly equivalent
+    # Divide each 15-minute MWh data point by 4 to convert to hourly equivalent
+    imbalance_data['Imbalance_Price_EUR_per_MWh'] = imbalance_data['Imbalance_Price_EUR_per_MWh'] / 4
+    
+    # Resample the imbalance data to hourly intervals by summing the four 15-minute intervals
     imbalance_data_resampled = imbalance_data.resample('H', on='Time').sum().reset_index()
 
     # Merge the day-ahead data with the resampled imbalance data on the 'Time' column
@@ -236,7 +238,9 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
         ), axis=1
     )
 
-    return combined_data
+    # Return only the relevant columns for display
+    return combined_data[['Time', 'Day-Ahead_Price_EUR_per_MWh', 'Imbalance_Price_EUR_per_MWh', 'Most_Profitable_Market']]
+
 
 
 
@@ -472,6 +476,10 @@ def main():
         # Calculate the profit and determine the most profitable market
         combined_data = calculate_market_profits(day_ahead_data, imbalance_data_display)
 
+        # Display the simplified comparison of profitability between day-ahead and imbalance
+        st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
+        st.dataframe(combined_data)
+
         # Calculate the total profit from each market
         total_profit_day_ahead = combined_data['Profit_Day_Ahead'].sum()
         total_profit_imbalance = combined_data['Profit_Imbalance'].sum()
@@ -503,10 +511,6 @@ def main():
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
-        # Display comparison of profitability between day-ahead and imbalance
-        st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
-        st.dataframe(combined_data)
-
         # Display total profits and most profitable market
         st.write(f"### Most Profitable Market Overall: {most_profitable_market}")
         st.write(f"Total Profit - Day-Ahead: {total_profit_day_ahead:,.2f} EUR")
@@ -529,4 +533,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
