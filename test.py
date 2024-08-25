@@ -214,31 +214,21 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def aggregate_imbalance_to_hourly(imbalance_data):
-    required_columns = [
-        'Time', 'Imbalance_Price_EUR_per_MWh', 'E_Boiler_Cost_Imbalance_in_Euro',
-        'Gas_Boiler_Cost_Imbalance_in_Euro', 'Profit_Imbalance', 
-        'E-boiler_Power_Imbalance', 'Gas-boiler_Power_Imbalance'
-    ]
-    
-    # Check if all required columns are in the DataFrame
-    missing_columns = [col for col in required_columns if col not in imbalance_data.columns]
-    if missing_columns:
-        raise KeyError(f"Column(s) {missing_columns} do not exist in the imbalance data.")
-
     # Convert the time column to hourly intervals by flooring to the nearest hour
     imbalance_data['Time'] = imbalance_data['Time'].dt.floor('H')
     
-    # Group by the hour and sum the relevant columns
-    hourly_imbalance_data = imbalance_data.groupby('Time').agg({
-        'Imbalance_Price_EUR_per_MWh': 'mean',  # Take the mean of the imbalance prices over the hour
-        'E_Boiler_Cost_Imbalance_in_Euro': 'sum',
-        'Gas_Boiler_Cost_Imbalance_in_Euro': 'sum',
-        'Profit_Imbalance': 'sum',
-        'E-boiler_Power_Imbalance': 'sum',
-        'Gas-boiler_Power_Imbalance': 'sum'
-    }).reset_index()
+    # Determine which columns are available for aggregation
+    available_columns = imbalance_data.columns
+    aggregation_dict = {}
+
+    if 'Imbalance_Price_EUR_per_MWh' in available_columns:
+        aggregation_dict['Imbalance_Price_EUR_per_MWh'] = 'mean'  # Average price over the hour
+    
+    # Perform the aggregation only on columns that exist
+    hourly_imbalance_data = imbalance_data.groupby('Time').agg(aggregation_dict).reset_index()
 
     return hourly_imbalance_data
+
 
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
@@ -467,18 +457,18 @@ def main():
             day_ahead_data['Desired Power'] = desired_power
             imbalance_data['Desired Power'] = desired_power
 
-        # Calculate costs and power usage
+        # Aggregate imbalance data to hourly before processing
+        hourly_imbalance_data = aggregate_imbalance_to_hourly(imbalance_data)
+
+        # Calculate costs and power usage after aggregation
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
-        imbalance_data = imbalance_costs(imbalance_data, gas_price)
+        hourly_imbalance_data = imbalance_costs(hourly_imbalance_data, gas_price)
 
         day_ahead_data = day_ahead_power(day_ahead_data)
-        imbalance_data = imbalance_power(imbalance_data)
+        hourly_imbalance_data = imbalance_power(hourly_imbalance_data)
 
         # Calculate time differences for imbalance data
-        imbalance_data = calculate_time_diff_hours(imbalance_data)
-
-        # Aggregate imbalance data to hourly
-        hourly_imbalance_data = aggregate_imbalance_to_hourly(imbalance_data)
+        hourly_imbalance_data = calculate_time_diff_hours(hourly_imbalance_data)
 
         # Calculate savings for both day-ahead and imbalance data
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, total_gas_boiler_cost_if_only_gas_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
