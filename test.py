@@ -233,7 +233,42 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     )
 
     return day_ahead_data, imbalance_data, combined_data
+    
+def aggregate_imbalance_to_hourly(data):
+    # Assuming the data has 'Time' and 'Imbalance_Price_EUR_per_MWh' columns after cleaning
+    data['Time'] = pd.to_datetime(data['Time'])
+    
+    # Resample to hourly intervals, summing up the 15-minute intervals
+    data_hourly = data.resample('H', on='Time').agg({
+        'Imbalance_Price_EUR_per_MWh': 'mean',  # or sum if appropriate, depending on what you want
+        'Desired Power': 'sum'  # Assuming power should be aggregated similarly
+    }).reset_index()
+    
+    return data_hourly
 
+def calculate_market_profits(day_ahead_data, imbalance_data):
+    # First, aggregate the imbalance data to hourly intervals
+    imbalance_hourly = aggregate_imbalance_to_hourly(imbalance_data)
+
+    # Calculate profit for both markets considering only negative prices
+    day_ahead_data['Profit_Day_Ahead'] = day_ahead_data.apply(
+        lambda row: row['Gas_Boiler_Cost_in_Euro'] - abs(row['E_Boiler_Cost_in_Euro']) if row['Day-Ahead_Price_EUR_per_MWh'] < 0 else None, axis=1)
+    imbalance_hourly['Profit_Imbalance'] = imbalance_hourly.apply(
+        lambda row: row['Gas_Boiler_Cost_Imbalance_in_Euro'] - abs(row['E_Boiler_Cost_Imbalance_in_Euro']) if row['Imbalance_Price_EUR_per_MWh'] < 0 else None, axis=1)
+
+    # Merge the day-ahead data and the hourly-aggregated imbalance data on Time
+    combined_data = pd.merge(day_ahead_data, imbalance_hourly, on='Time', how='inner', suffixes=('_DayAhead', '_Imbalance'))
+
+    # Determine the most profitable market, considering None and zero values properly
+    combined_data['Most_Profitable_Market'] = combined_data.apply(
+        lambda row: (
+            'Day-Ahead' if (pd.notna(row['Profit_Day_Ahead']) and (pd.isna(row['Profit_Imbalance']) or row['Profit_Day_Ahead'] > row['Profit_Imbalance']))
+            else 'Imbalance' if (pd.notna(row['Profit_Imbalance']) and (pd.isna(row['Profit_Day_Ahead']) or row['Profit_Imbalance'] > row['Profit_Day_Ahead']))
+            else 'No profits'
+        ), axis=1
+    )
+
+    return day_ahead_data, imbalance_hourly, combined_data
 
 
 def compare_total_profits(total_profit_day_ahead, total_profit_imbalance):
@@ -443,11 +478,11 @@ def main():
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
         imbalance_data = imbalance_costs(imbalance_data, gas_price)
 
+        # Aggregate imbalance data to hourly intervals
+        imbalance_data = aggregate_imbalance_to_hourly(imbalance_data)
+
         day_ahead_data = day_ahead_power(day_ahead_data)
         imbalance_data = imbalance_power(imbalance_data)
-
-        # Calculate time differences for imbalance data
-        imbalance_data = calculate_time_diff_hours(imbalance_data)
 
         # Calculate savings for both day-ahead and imbalance data
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, total_gas_boiler_cost_if_only_gas_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
@@ -465,7 +500,7 @@ def main():
         # Calculate the total profit from each market
         total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
         total_profit_imbalance = imbalance_data_display['Profit_Imbalance'].sum()
-        most_profitable_market = 'Day-Ahead' if total_profit_day_ahead < total_profit_imbalance else 'Imbalance'
+        most_profitable_market = 'Day-Ahead' if total_profit_day_ahead > total_profit_imbalance else 'Imbalance'
 
         # Display the original results for day-ahead data
         st.write('### Day-Ahead Data Results:')
@@ -519,3 +554,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
