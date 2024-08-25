@@ -444,9 +444,15 @@ def main():
             day_ahead_data['Desired Power'] = desired_power
             imbalance_data['Desired Power'] = desired_power
 
-        # Ensure 'Time' is a datetime index before processing
+        # Ensure 'Time' is a datetime column and set as index for resampling
         day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
         imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
+
+        # Check data types for debugging
+        st.write("Day-Ahead Data Types:")
+        st.write(day_ahead_data.dtypes)
+        st.write("Imbalance Data Types:")
+        st.write(imbalance_data.dtypes)
 
         # Calculate costs and power usage
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
@@ -458,20 +464,15 @@ def main():
         # Calculate time differences for imbalance data
         imbalance_data = calculate_time_diff_hours(imbalance_data)
 
-        # Calculate savings for both day-ahead and imbalance data
-        total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, total_gas_boiler_cost_if_only_gas_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
-        total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, total_gas_boiler_cost_if_only_gas_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
-
-        total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
-        total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
-
         # Drop the 'Time_Diff_Minutes' column before displaying
         imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
 
         # Calculate the profit and determine the most profitable market
         combined_data = calculate_market_profits(day_ahead_data, imbalance_data_display)
 
-        
+        # Display the simplified comparison of profitability between day-ahead and imbalance
+        st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
+        st.dataframe(combined_data)
 
         # Determine the most profitable market overall
         day_ahead_profit_count = combined_data['Most_Profitable_Market'].value_counts().get('Day-Ahead', 0)
@@ -505,10 +506,6 @@ def main():
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
-
-        # Display the simplified comparison of profitability between day-ahead and imbalance
-        st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
-        st.dataframe(combined_data)
         # Display most profitable market overall
         st.write(f"### Most Profitable Market Overall: {most_profitable_market}")
 
@@ -529,3 +526,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
