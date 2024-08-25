@@ -213,19 +213,25 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, total_gas_boiler_cost_if_only_gas, data
 
 
-def aggregate_imbalance_to_hourly(imbalance_data):
-    # Convert the time column to hourly intervals by flooring to the nearest hour
-    imbalance_data['Time'] = imbalance_data['Time'].dt.floor('H')
-    
-    # Determine which columns are available for aggregation
-    available_columns = imbalance_data.columns
-    aggregation_dict = {}
+# Function to group imbalance data into hourly intervals
+def group_imbalance_data_hourly(imbalance_data):
+    # Convert the 'Time' column to datetime if it's not already
+    imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
 
-    if 'Imbalance_Price_EUR_per_MWh' in available_columns:
-        aggregation_dict['Imbalance_Price_EUR_per_MWh'] = 'mean'  # Average price over the hour
-    
-    # Perform the aggregation only on columns that exist
-    hourly_imbalance_data = imbalance_data.groupby('Time').agg(aggregation_dict).reset_index()
+    # Round down the time to the nearest hour
+    imbalance_data['Hour'] = imbalance_data['Time'].dt.floor('H')
+
+    # Group by the hour and sum the relevant columns
+    hourly_imbalance_data = imbalance_data.groupby('Hour').agg({
+        'Imbalance_Price_EUR_per_MWh': 'mean',  # Average the prices over the hour
+        'E_Boiler_Cost_Imbalance_in_Euro': 'sum',  # Sum the cost
+        'Gas_Boiler_Cost_Imbalance_in_Euro': 'sum',  # Sum the cost
+        'E-boiler_Power_Imbalance': 'sum',  # Sum the power
+        'Gas-boiler_Power_Imbalance': 'sum'  # Sum the power
+    }).reset_index()
+
+    # Rename 'Hour' back to 'Time' to maintain consistency with the rest of the code
+    hourly_imbalance_data.rename(columns={'Hour': 'Time'}, inplace=True)
 
     return hourly_imbalance_data
 
@@ -457,32 +463,35 @@ def main():
             day_ahead_data['Desired Power'] = desired_power
             imbalance_data['Desired Power'] = desired_power
 
-        # Aggregate imbalance data to hourly before processing
-        hourly_imbalance_data = aggregate_imbalance_to_hourly(imbalance_data)
+        # Group imbalance data into hourly intervals
+        imbalance_data = group_imbalance_data_hourly(imbalance_data)
 
-        # Calculate costs and power usage after aggregation
+        # Calculate costs and power usage
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
-        hourly_imbalance_data = imbalance_costs(hourly_imbalance_data, gas_price)
+        imbalance_data = imbalance_costs(imbalance_data, gas_price)
 
         day_ahead_data = day_ahead_power(day_ahead_data)
-        hourly_imbalance_data = imbalance_power(hourly_imbalance_data)
+        imbalance_data = imbalance_power(imbalance_data)
 
-        # Calculate time differences for imbalance data
-        hourly_imbalance_data = calculate_time_diff_hours(hourly_imbalance_data)
+        # Calculate time differences for imbalance data (now grouped by hour)
+        imbalance_data = calculate_time_diff_hours(imbalance_data)
 
         # Calculate savings for both day-ahead and imbalance data
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, total_gas_boiler_cost_if_only_gas_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
-        total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, total_gas_boiler_cost_if_only_gas_imbalance, hourly_imbalance_data = calculate_savings_imbalance(hourly_imbalance_data, gas_price, desired_power)
+        total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, total_gas_boiler_cost_if_only_gas_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
 
         total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
         total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
 
+        # Drop the 'Time_Diff_Minutes' column before displaying
+        imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
+
         # Calculate the profit and determine the most profitable market
-        day_ahead_data, hourly_imbalance_data, combined_data = calculate_market_profits(day_ahead_data, hourly_imbalance_data)
+        day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_data_display)
 
         # Calculate the total profit from each market
         total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
-        total_profit_imbalance = hourly_imbalance_data['Profit_Imbalance'].sum()
+        total_profit_imbalance = imbalance_data_display['Profit_Imbalance'].sum()
         most_profitable_market = 'Day-Ahead' if total_profit_day_ahead < total_profit_imbalance else 'Imbalance'
 
         # Display the original results for day-ahead data
@@ -509,7 +518,7 @@ def main():
             col11.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
             col12.write(f"**Gas-boiler Cost (when only used):**\n{total_gas_boiler_cost_if_only_gas_imbalance:,.2f} EUR")
         st.write('### Imbalance Data Table:')
-        st.dataframe(hourly_imbalance_data)
+        st.dataframe(imbalance_data_display)
 
         # Display comparison of profitability between day-ahead and imbalance
         st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
@@ -521,7 +530,7 @@ def main():
         st.write(f"Total Profit - Imbalance: {total_profit_imbalance:,.2f} EUR")
 
         # Plot the price graphs
-        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, hourly_imbalance_data, gas_price)
+        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
         if fig_day_ahead_price is not None and fig_imbalance_price is not None:
             st.write('### Price Comparison:')
             st.plotly_chart(fig_day_ahead_price)
@@ -530,7 +539,7 @@ def main():
             st.error("Error generating price comparison charts.")
 
         # Show the power plots
-        fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, hourly_imbalance_data)
+        fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
         st.write('### Power Usage:')
         st.plotly_chart(fig_day_ahead_power)
         st.plotly_chart(fig_imbalance_power)
