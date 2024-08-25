@@ -214,14 +214,21 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
+    # Resample the imbalance data to hourly intervals by summing the profits within each hour
+    imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
+    imbalance_data_resampled = imbalance_data.set_index('Time').resample('H').sum().reset_index()
+
     # Calculate profit for both markets considering only negative prices
     day_ahead_data['Profit_Day_Ahead'] = day_ahead_data.apply(
         lambda row: row['Gas_Boiler_Cost_in_Euro'] - abs(row['E_Boiler_Cost_in_Euro']) if row['Day-Ahead_Price_EUR_per_MWh'] < 0 else None, axis=1)
-    imbalance_data['Profit_Imbalance'] = imbalance_data.apply(
+    
+    imbalance_data_resampled['Profit_Imbalance'] = imbalance_data_resampled.apply(
         lambda row: row['Gas_Boiler_Cost_Imbalance_in_Euro'] - abs(row['E_Boiler_Cost_Imbalance_in_Euro']) if row['Imbalance_Price_EUR_per_MWh'] < 0 else None, axis=1)
 
     # Create a new column to indicate the most profitable market at each time point
-    combined_data = pd.merge(day_ahead_data[['Time', 'Profit_Day_Ahead']], imbalance_data[['Time', 'Profit_Imbalance']], on='Time', how='outer')
+    combined_data = pd.merge(day_ahead_data[['Time', 'Profit_Day_Ahead']], 
+                             imbalance_data_resampled[['Time', 'Profit_Imbalance']], 
+                             on='Time', how='outer')
 
     # Determine the most profitable market, considering None and zero values properly
     combined_data['Most_Profitable_Market'] = combined_data.apply(
@@ -232,7 +239,8 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
         ), axis=1
     )
 
-    return day_ahead_data, imbalance_data, combined_data
+    return day_ahead_data, imbalance_data_resampled, combined_data
+
 
 
 
