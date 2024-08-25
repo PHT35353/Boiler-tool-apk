@@ -215,10 +215,10 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
     # Divide each 15-minute MWh data point by 4 to convert to hourly equivalent
-    imbalance_data['Imbalance_Price_EUR_per_MWh'] = imbalance_data['Imbalance_Price_EUR_per_MWh'] / 4
+    imbalance_data['Imbalance_Price_EUR_per_MWh'] = imbalance_data['Imbalance_Price_EUR_per_MWh'] 
     
     # Resample the imbalance data to hourly intervals by summing the four 15-minute intervals
-    imbalance_data_resampled = imbalance_data.resample('H', on='Time').sum().reset_index()
+    imbalance_data_resampled = (imbalance_data.resample('H', on='Time').sum().reset_index()) / 4
 
     # Merge the day-ahead data with the resampled imbalance data on the 'Time' column
     combined_data = pd.merge(day_ahead_data, imbalance_data_resampled, on='Time', suffixes=('_Day_Ahead', '_Imbalance'))
@@ -473,10 +473,6 @@ def main():
         # Calculate the profit and determine the most profitable market
         combined_data = calculate_market_profits(day_ahead_data, imbalance_data_display)
 
-        # Display the simplified comparison of profitability between day-ahead and imbalance
-        st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
-        st.dataframe(combined_data)
-
         # Determine the most profitable market overall
         day_ahead_profit_count = combined_data['Most_Profitable_Market'].value_counts().get('Day-Ahead', 0)
         imbalance_profit_count = combined_data['Most_Profitable_Market'].value_counts().get('Imbalance', 0)
@@ -509,6 +505,10 @@ def main():
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
+
+        # Display the simplified comparison of profitability between day-ahead and imbalance
+        st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
+        st.dataframe(combined_data)
         # Display most profitable market overall
         st.write(f"### Most Profitable Market Overall: {most_profitable_market}")
 
