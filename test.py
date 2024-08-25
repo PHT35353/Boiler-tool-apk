@@ -214,6 +214,17 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def aggregate_imbalance_to_hourly(imbalance_data):
+    required_columns = [
+        'Time', 'Imbalance_Price_EUR_per_MWh', 'E_Boiler_Cost_Imbalance_in_Euro',
+        'Gas_Boiler_Cost_Imbalance_in_Euro', 'Profit_Imbalance', 
+        'E-boiler_Power_Imbalance', 'Gas-boiler_Power_Imbalance'
+    ]
+    
+    # Check if all required columns are in the DataFrame
+    missing_columns = [col for col in required_columns if col not in imbalance_data.columns]
+    if missing_columns:
+        raise KeyError(f"Column(s) {missing_columns} do not exist in the imbalance data.")
+
     # Convert the time column to hourly intervals by flooring to the nearest hour
     imbalance_data['Time'] = imbalance_data['Time'].dt.floor('H')
     
@@ -228,6 +239,7 @@ def aggregate_imbalance_to_hourly(imbalance_data):
     }).reset_index()
 
     return hourly_imbalance_data
+
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
     # Calculate profit for both markets considering only negative prices
