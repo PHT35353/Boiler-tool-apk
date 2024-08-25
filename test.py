@@ -214,11 +214,14 @@ def calculate_savings_imbalance(data, gas_price, desired_power):
 
 
 def calculate_market_profits(day_ahead_data, imbalance_data):
+    # Ensure the 'Time' column is the datetime index before resampling
+    imbalance_data.set_index('Time', inplace=True)
+
     # Divide each 15-minute MWh data point by 4 to convert to an hourly equivalent
     imbalance_data['Imbalance_Price_EUR_per_MWh'] = imbalance_data['Imbalance_Price_EUR_per_MWh'] / 4
     
-    # Resample the imbalance data to hourly intervals by summing the four 15-minute intervals
-    imbalance_data_resampled = imbalance_data.resample('H', on='Time').mean().reset_index()
+    # Resample the imbalance data to hourly intervals by taking the mean of the four 15-minute intervals
+    imbalance_data_resampled = imbalance_data.resample('H').mean().reset_index()
 
     # Merge the day-ahead data with the resampled imbalance data on the 'Time' column
     combined_data = pd.merge(day_ahead_data, imbalance_data_resampled, on='Time', suffixes=('_Day_Ahead', '_Imbalance'))
@@ -235,6 +238,7 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
 
     # Return only the relevant columns for display
     return combined_data[['Time', 'Day-Ahead_Price_EUR_per_MWh', 'Imbalance_Price_EUR_per_MWh', 'Most_Profitable_Market']]
+
 
 
 def compare_total_profits(total_profit_day_ahead, total_profit_imbalance):
