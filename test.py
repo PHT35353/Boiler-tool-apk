@@ -223,10 +223,10 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
 
     # Calculate profit for both markets considering only negative prices
     day_ahead_data['Profit_Day_Ahead'] = day_ahead_data.apply(
-        lambda row: row['Gas_Boiler_Cost_in_Euro'] - abs(row['E_Boiler_Cost_in_Euro']) if row['Day-Ahead_Price_EUR_per_MWh'] < 0 else None, axis=1
+        lambda row: row['Gas_Boiler_Cost_in_Euro'] - abs(row['E_Boiler_Cost_in_Euro']) if row['Day-Ahead_Price_EUR_per_MWh'] < 0 else 0, axis=1
     )
     imbalance_data['Profit_Imbalance'] = imbalance_data.apply(
-        lambda row: row['Gas_Boiler_Cost_Imbalance_in_Euro'] - abs(row['E_Boiler_Cost_Imbalance_in_Euro']) if row['Imbalance_Price_EUR_per_MWh'] < 0 else None, axis=1
+        lambda row: row['Gas_Boiler_Cost_Imbalance_in_Euro'] - abs(row['E_Boiler_Cost_Imbalance_in_Euro']) if row['Imbalance_Price_EUR_per_MWh'] < 0 else 0, axis=1
     )
 
     # Resample only the Profit_Imbalance column to hourly intervals for comparison table
@@ -235,30 +235,20 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
     # Merge day-ahead and resampled imbalance data on 'Time' for profit comparison
     combined_data = pd.merge(day_ahead_data[['Time', 'Profit_Day_Ahead']], imbalance_profit_resampled[['Time', 'Profit_Imbalance']], on='Time', how='outer')
 
+    # Replace NaN values with 0 in both columns
+    combined_data['Profit_Day_Ahead'].fillna(0, inplace=True)
+    combined_data['Profit_Imbalance'].fillna(0, inplace=True)
+
     # Determine the most profitable market, considering None and zero values properly
     combined_data['Most_Profitable_Market'] = combined_data.apply(
         lambda row: (
-            'Day-Ahead' if (pd.notna(row['Profit_Day_Ahead']) and (pd.isna(row['Profit_Imbalance']) or row['Profit_Day_Ahead'] < row['Profit_Imbalance']))
-            else 'Imbalance' if (pd.notna(row['Profit_Imbalance']) and (pd.isna(row['Profit_Day_Ahead']) or row['Profit_Imbalance'] < row['Profit_Day_Ahead']))
+            'Day-Ahead' if row['Profit_Day_Ahead'] < row['Profit_Imbalance']
+            else 'Imbalance' if row['Profit_Imbalance'] < row['Profit_Day_Ahead']
             else 'Gas'
         ), axis=1
     )
 
     return day_ahead_data, imbalance_data, combined_data
-
-
-
-
-
-
-def compare_total_profits(total_profit_day_ahead, total_profit_imbalance):
-    # Correctly determine the most profitable market based on the most negative value (smallest number)
-    if total_profit_day_ahead < total_profit_imbalance:
-        return "Day-Ahead"
-    elif total_profit_imbalance < total_profit_day_ahead:
-        return "Imbalance"
-    else:
-        return "No Profits"
 
 # this is for plotting the price graph
 def plot_price(day_ahead_data, imbalance_data, gas_price):
