@@ -491,7 +491,7 @@ def main():
             col7, col8, col9, col10, col11, col12 = st.columns([10, 10, 10, 10, 10, 10])
             col7.write(f"**Total Savings:**\n{total_savings_imbalance:,.2f} EUR")
             col8.write(f"**Percentage Savings:**\n{percentage_savings_imbalance:.2f}%")
-            col9.write(f"**Total Cost both E-boiler and gas-boiler mixed:**\n{total_cost_imbalance:,.2f} EUR")
+            col9.write(f"**Total Cost (both E-boiler and gas-boiler mixed):**\n{total_cost_imbalance:,.2f} EUR")
             col10.write(f"**E-boiler Cost:**\n{e_boiler_cost_imbalance:,.2f} EUR")
             col11.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
             col12.write(f"**Gas-boiler Cost (when only used):**\n{total_gas_boiler_cost_if_only_gas_imbalance:,.2f} EUR")
