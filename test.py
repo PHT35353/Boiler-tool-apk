@@ -475,7 +475,7 @@ def main():
         # Display the original results for day-ahead data
         st.write('### Day-Ahead Data Results:')
         with st.container():
-            col1, col2, col3, col4, col5, col6 = st.columns([10, 5, 5, 10, 5, 5])
+            col1, col2, col3, col4, col5, col6 = st.columns([3, 3, 3, 3, 3, 3])
             col1.write(f"**Total Savings:**\n{total_savings_day_ahead:,.2f} EUR")
             col2.write(f"**Percentage Savings:**\n{percentage_savings_day_ahead:.2f}%")
             col3.write(f"**Total Cost both E-boiler and gas-boiler mixed:**\n{total_cost_day_ahead:,.2f} EUR")
@@ -488,7 +488,7 @@ def main():
         # Display the original results for imbalance data
         st.write('### Imbalance Data Results:')
         with st.container():
-            col7, col8, col9, col10, col11, col12 = st.columns([10, 5, 5, 10, 5, 5])
+            col7, col8, col9, col10, col11, col12 = st.columns([3, 3, 3, 3, 3, 3])
             col7.write(f"**Total Savings:**\n{total_savings_imbalance:,.2f} EUR")
             col8.write(f"**Percentage Savings:**\n{percentage_savings_imbalance:.2f}%")
             col9.write(f"**Total Cost both E-boiler and gas-boiler mixed:**\n{total_cost_imbalance:,.2f} EUR")
