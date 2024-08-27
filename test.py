@@ -220,10 +220,10 @@ def calculate_market_profits(day_ahead_data, imbalance_data):
 
     # calculates the profits for both markets 
     day_ahead_data['Profit_Day_Ahead'] = day_ahead_data.apply(
-        lambda row: row['Gas_Boiler_Cost_in_euro_per_hour'] - abs(row['E_Boiler_Cost_in_euro_per_hour']) if row['Day-Ahead_Price_EUR_per_MWh'] < 0 else 0, axis=1
+        lambda row: row['gas_boiler_cost_in_euro_per_hour'] - abs(row['e_boiler_cost_in_euro_per_hour']) if row['Day-Ahead_Price_EUR_per_MWh'] < 0 else 0, axis=1
     )
     imbalance_data['Profit_Imbalance'] = imbalance_data.apply(
-        lambda row: row['Gas_Boiler_Cost_Imbalance_in_euro_per_hour'] - abs(row['E_Boiler_Cost_Imbalance_in_euro_per_hour']) if row['Imbalance_Price_EUR_per_MWh'] < 0 else 0, axis=1
+        lambda row: row['gas_boiler_cost_in_euro_per_hour'] - abs(row['e_boiler_cost_in_euro_per_hour']) if row['Imbalance_Price_EUR_per_MWh'] < 0 else 0, axis=1
     )
 
     # resamples only the Profit_Imbalance column to hourly intervals for comparison table
