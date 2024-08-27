@@ -161,7 +161,7 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     e_boiler_cost = data['E_Boiler_Cost_in_Euro/hour'].sum()
 
     # total gas boiler cost if only the gas boiler was used
-   only_gas_boiler_cost = data['Only_gas_boiler_cost'].sum()
+   Only_gas_boiler_cost = data['Only_gas_boiler_cost'].sum()
 
     # calculates the total savings and savings percentage
     total_mixed_cost = (e_boiler_cost) + gas_boiler_cost
