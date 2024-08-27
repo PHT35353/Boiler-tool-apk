@@ -452,7 +452,7 @@ def main():
         imbalance_data = calculate_time_diff_hours(imbalance_data)
 
         # calculates savings for both day-ahead and imbalance data
-        total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, only_gas_boiler_cost_day_head = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
+        total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, only_gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
         total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, only_gas_boiler_cost_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
 
         total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
