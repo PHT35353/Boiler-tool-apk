@@ -478,7 +478,7 @@ def main():
             col3.write(f"**Total Cost (both E-boiler and gas-boiler used):**\n{total_cost_day_ahead:,.2f} EUR")
             col4.write(f"**E-boiler Cost:**\n{e_boiler_cost_day_ahead:,.2f} EUR")
             col5.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_day_ahead:,.2f} EUR")
-            col6.write(f"**Gas-boiler Cost (when only used):**\n{Only_gas_boiler_cost_day_ahead:,.2f} EUR")
+            col6.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_day_ahead:,.2f} EUR")
         st.write('### Day-Ahead Data Table:')
         st.dataframe(day_ahead_data)
 
@@ -491,7 +491,7 @@ def main():
             col9.write(f"**Total Cost (both E-boiler and gas-boiler used):**\n{total_cost_imbalance:,.2f} EUR")
             col10.write(f"**E-boiler Cost:**\n{e_boiler_cost_imbalance:,.2f} EUR")
             col11.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
-            col12.write(f"**Gas-boiler Cost (when only used):**\n{Only_gas_boiler_cost_imbalance:,.2f} EUR")
+            col12.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_imbalance:,.2f} EUR")
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
