@@ -425,8 +425,17 @@ def main():
                 uploaded_data = pd.read_excel(uploaded_file)
                 if 'Start time' in uploaded_data.columns and 'thermal load (kW)' in uploaded_data.columns:
                     uploaded_data['Start time'] = pd.to_datetime(uploaded_data['Start time'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
+
+                    # Convert to the same timezone as the ENTSO-E data
+                    uploaded_data['Start time'] = uploaded_data['Start time'].dt.tz_localize('Europe/Amsterdam', ambiguous='NaT', nonexistent='NaT')
+
+                    # Rename and select necessary columns
                     uploaded_data.rename(columns={'thermal load (kW)': 'Desired Power'}, inplace=True)
                     uploaded_data = uploaded_data[['Start time', 'Desired Power']]
+
+                    # Ensure day_ahead_data and imbalance_data are in the same timezone
+                    day_ahead_data['Time'] = day_ahead_data['Time'].dt.tz_convert('Europe/Amsterdam')
+                    imbalance_data['Time'] = imbalance_data['Time'].dt.tz_convert('Europe/Amsterdam')
 
                     # Merge uploaded data with day-ahead and imbalance data
                     day_ahead_data = pd.merge(day_ahead_data, uploaded_data, left_on='Time', right_on='Start time', how='left').drop(columns=['Start time'])
