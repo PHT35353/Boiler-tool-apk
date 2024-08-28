@@ -140,27 +140,30 @@ def calculate_time_diff_hours(data):
 
 
 # this function calculates the total saving price and precentage of the day-ahead market
-def calculate_savings_day_ahead(data, gas_price, desired_power):
+def calculate_savings_day_ahead(data, gas_price):
     gas_price_Mwh = gas_price * 1000  # convert gas price from EUR/kWh to EUR/MWh
-    desired_power_Mwh = desired_power / 1000  # convert desired power from kW to MW
 
-    # calculates the cost if only the gas boiler was used
-    data['only_gas_boiler_cost'] = desired_power_Mwh * gas_price_Mwh
+    # Calculate gas boiler cost if it was the only option
+    data['only_gas_boiler_cost'] = (data['Desired Power'] / 1000) * gas_price_Mwh
 
-    # calculates the gas boiler cost based on when it is the efficienct choice
-    data['gas_boiler_cost_in_euro_per_hour'] = data.apply(lambda row: desired_power_Mwh * gas_price_Mwh
-                                                          if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else 0, axis=1)
+    # Calculate the gas boiler cost based on efficiency
+    data['gas_boiler_cost_in_euro_per_hour'] = data.apply(
+        lambda row: (row['Desired Power'] / 1000) * gas_price_Mwh
+        if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else 0, axis=1
+    )
     gas_boiler_cost = data['gas_boiler_cost_in_euro_per_hour'].sum()
 
-    # calculates the e-boiler cost based on actual efficiency
-    data['e_boiler_cost_in_euro_per_hour'] = data.apply(lambda row: desired_power_Mwh * row['Day-Ahead_Price_EUR_per_MWh']
-                                                        if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else 0, axis=1)
+    # Calculate the E-boiler cost based on efficiency
+    data['e_boiler_cost_in_euro_per_hour'] = data.apply(
+        lambda row: (row['Desired Power'] / 1000) * row['Day-Ahead_Price_EUR_per_MWh']
+        if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else 0, axis=1
+    )
     e_boiler_cost = data['e_boiler_cost_in_euro_per_hour'].sum()
 
-    # total gas boiler cost if only the gas boiler was used
+    # Calculate total gas boiler cost if it was the only option
     only_gas_boiler_cost = data['only_gas_boiler_cost'].sum()
 
-    # calculates the total savings and savings percentage
+    # Calculate total savings and percentage savings
     total_mixed_cost = e_boiler_cost + gas_boiler_cost
     total_savings = only_gas_boiler_cost - total_mixed_cost
     percentage_savings = (total_savings / only_gas_boiler_cost * 100) if only_gas_boiler_cost else 0
@@ -168,45 +171,38 @@ def calculate_savings_day_ahead(data, gas_price, desired_power):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, only_gas_boiler_cost
 
 
+
 # this function calculates the total saving price and precentage of the imbalance market
-def calculate_savings_imbalance(data, gas_price, desired_power):
-    # calculate the time difference in minutes between consecutive rows
-    data['Time_Diff_Minutes'] = data['Time'].diff().dt.total_seconds() / 60.0
+def calculate_savings_imbalance(data, gas_price):
+    gas_price_Mwh = gas_price * 1000  # Convert gas price from EUR/kWh to EUR/MWh
 
-    # the same default function that was explained in the time_diff_hours function
-    if data['Time_Diff_Minutes'].isnull().any():
-        default_time_diff = 15  # Default to 15 minutes if not available
-        data['Time_Diff_Minutes'].fillna(default_time_diff, inplace=True)
+    # Calculate gas boiler cost if it was the only option
+    data['only_gas_boiler_cost'] = (data['Desired Power'] / 1000) * (data['Time_Diff_Hours']) * gas_price_Mwh
 
-    gas_price_Mwh = gas_price * 1000  # goes from EUR/kwh to EUR/MWh
-    desired_power_Mwh = desired_power / 1000  # goes from kW to MW
-
-    # calculates the cost if only the gas boiler was used and automatically knows the time pattern
-    data['only_gas_boiler_cost'] = (desired_power_Mwh * (data['Time_Diff_Minutes'] / 60)) * gas_price_Mwh
-
-    # calculates the gas boiler cost based on actual efficiency
+    # Calculate the gas boiler cost based on efficiency
     data['gas_boiler_cost_in_euro_per_hour'] = data.apply(
-        lambda row: (desired_power_Mwh * (row['Time_Diff_Minutes'] / 60)) * gas_price_Mwh
+        lambda row: (row['Desired Power'] / 1000) * (row['Time_Diff_Hours']) * gas_price_Mwh
         if row['Efficient_Boiler_Imbalance'] == 'Gas-boiler' else 0, axis=1
     )
     gas_boiler_cost = data['gas_boiler_cost_in_euro_per_hour'].sum()
 
-    # calculates the e-boiler cost based on actual efficiency and automatically knows the time pattern
+    # Calculate the E-boiler cost based on efficiency
     data['e_boiler_cost_in_euro_per_hour'] = data.apply(
-        lambda row: (desired_power_Mwh * (row['Time_Diff_Minutes'] / 60)) * row['Imbalance_Price_EUR_per_MWh']
+        lambda row: (row['Desired Power'] / 1000) * (row['Time_Diff_Hours']) * row['Imbalance_Price_EUR_per_MWh']
         if row['Efficient_Boiler_Imbalance'] == 'E-boiler' else 0, axis=1
     )
     e_boiler_cost = data['e_boiler_cost_in_euro_per_hour'].sum()
 
-    # total gas boiler cost if only the gas boiler was used
+    # Calculate total gas boiler cost if it was the only option
     only_gas_boiler_cost = data['only_gas_boiler_cost'].sum()
 
-    # calculates total savings and savings percentage
+    # Calculate total savings and percentage savings
     total_mixed_cost = e_boiler_cost + gas_boiler_cost
     total_savings = only_gas_boiler_cost - total_mixed_cost
     percentage_savings = (total_savings / only_gas_boiler_cost * 100) if only_gas_boiler_cost else 0
 
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, only_gas_boiler_cost, data
+
 
 
 # this functions calculates per data which market is more profitable
@@ -425,6 +421,9 @@ def main():
             st.error("No imbalance data available")
             return
 
+        # Initialize a flag to check if we are using uploaded data or default input
+        use_uploaded_data = False
+
         # Process uploaded file if available
         if uploaded_file is not None:
             try:
@@ -450,6 +449,9 @@ def main():
                     # Fill missing values by forward and backward filling
                     day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
                     imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
+
+                    # Set the flag to true indicating we are using uploaded data
+                    use_uploaded_data = True
                 else:
                     st.error("Uploaded file must contain 'Start time' and 'thermal load (kW)' columns")
                     return
@@ -472,8 +474,8 @@ def main():
         imbalance_data = calculate_time_diff_hours(imbalance_data)
 
         # Calculate savings for both day-ahead and imbalance data
-        total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, only_gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price, desired_power)
-        total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, only_gas_boiler_cost_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price, desired_power)
+        total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, only_gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price)
+        total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, only_gas_boiler_cost_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price)
 
         total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
         total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
