@@ -20,7 +20,7 @@ st.markdown("""
 - **Date Range:** Select start and end dates of the time period that you wish to have a data of
 - **Country:** Enter the country code of the country that you wish to get the data from
 - **Gas Price:** Input the gas price (EUR/kWh) 
-- **Desired Power:** Enter your desired power output (kWh) that you wish to get out of the boilers
+- **Desired Power:** Enter your desired power output (kW) that you wish to get out of the boilers
 
 **Outputs:**
 - Results are shown in interactive plots with a summary of key findings
