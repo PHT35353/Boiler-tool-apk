@@ -354,12 +354,17 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
 
 # this function plots the total number of times that either the gas-boiler or e-boiler is used in the day-ahead or imbalance market and makes a chart with plotly
 def plot_power(day_ahead_data, imbalance_data):
+    # Ensure the power columns are numeric and replace NaN values with 0
+    day_ahead_data['E-boiler_Power_Day_Ahead'] = pd.to_numeric(day_ahead_data['E-boiler_Power_Day_Ahead'], errors='coerce').fillna(0)
+    day_ahead_data['Gas-boiler_Power_Day_Ahead'] = pd.to_numeric(day_ahead_data['Gas-boiler_Power_Day_Ahead'], errors='coerce').fillna(0)
+    imbalance_data['E-boiler_Power_Imbalance'] = pd.to_numeric(imbalance_data['E-boiler_Power_Imbalance'], errors='coerce').fillna(0)
+    imbalance_data['Gas-boiler_Power_Imbalance'] = pd.to_numeric(imbalance_data['Gas-boiler_Power_Imbalance'], errors='coerce').fillna(0)
 
-    # calculates the sum of power for day-ahead data
+    # Calculate the sum of power for day-ahead data
     sum_e_boiler_day_ahead = day_ahead_data['E-boiler_Power_Day_Ahead'].sum()
     sum_gas_boiler_day_ahead = day_ahead_data['Gas-boiler_Power_Day_Ahead'].sum()
 
-    # making a horizontal bar chart for day-ahead data using Plotly
+    # Create a horizontal bar chart for day-ahead data using Plotly
     day_ahead_fig = go.Figure()
     day_ahead_fig.add_trace(go.Bar(
         y=['E-boiler (Day-Ahead)', 'Gas-boiler (Day-Ahead)'],
@@ -368,17 +373,17 @@ def plot_power(day_ahead_data, imbalance_data):
         marker=dict(color=['blue', 'red'])
     ))
 
-    # adds the titels and names
+    # Add titles and labels
     day_ahead_fig.update_layout(title='Total Power - Day-Ahead',
                                 xaxis_title='Total Power (kW)',
                                 yaxis_title='',
                                 xaxis=dict(range=[0, max(sum_e_boiler_day_ahead, sum_gas_boiler_day_ahead) * 1.1]))
 
-    # calculates the sum of power for imbalance data
+    # Calculate the sum of power for imbalance data
     sum_e_boiler_imbalance = imbalance_data['E-boiler_Power_Imbalance'].sum()
     sum_gas_boiler_imbalance = imbalance_data['Gas-boiler_Power_Imbalance'].sum()
 
-    # making a horizontal bar chart for imbalance data using Plotly
+    # Create a horizontal bar chart for imbalance data using Plotly
     imbalance_fig = go.Figure()
     imbalance_fig.add_trace(go.Bar(
         y=['E-boiler (Imbalance)', 'Gas-boiler (Imbalance)'],
@@ -387,13 +392,14 @@ def plot_power(day_ahead_data, imbalance_data):
         marker=dict(color=['blue', 'red'])
     ))
 
-    # adds the titels and names
+    # Add titles and labels
     imbalance_fig.update_layout(title='Total Power - Imbalance',
                                 xaxis_title='Total Power (kW)',
                                 yaxis_title='',
                                 xaxis=dict(range=[0, max(sum_e_boiler_imbalance, sum_gas_boiler_imbalance) * 1.1]))
 
     return day_ahead_fig, imbalance_fig
+
 
 
 def main():
