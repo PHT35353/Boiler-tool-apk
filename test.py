@@ -525,4 +525,6 @@ def main():
         st.plotly_chart(fig_imbalance_power)
 
 if __name__ == '__main__':
+    main()
+
 
