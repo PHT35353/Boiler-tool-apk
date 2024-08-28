@@ -143,6 +143,9 @@ def calculate_time_diff_hours(data):
 def calculate_savings_day_ahead(data, gas_price):
     gas_price_Mwh = gas_price * 1000  # convert gas price from EUR/kWh to EUR/MWh
 
+    # Ensure 'Desired Power' is numeric and replace NaN values with 0
+    data['Desired Power'] = pd.to_numeric(data['Desired Power'], errors='coerce').fillna(0)
+
     # Calculate gas boiler cost if it was the only option
     data['only_gas_boiler_cost'] = (data['Desired Power'] / 1000) * gas_price_Mwh
 
@@ -170,11 +173,12 @@ def calculate_savings_day_ahead(data, gas_price):
 
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, only_gas_boiler_cost
 
-
-
 # this function calculates the total saving price and precentage of the imbalance market
 def calculate_savings_imbalance(data, gas_price):
     gas_price_Mwh = gas_price * 1000  # Convert gas price from EUR/kWh to EUR/MWh
+
+    # Ensure 'Desired Power' is numeric and replace NaN values with 0
+    data['Desired Power'] = pd.to_numeric(data['Desired Power'], errors='coerce').fillna(0)
 
     # Calculate gas boiler cost if it was the only option
     data['only_gas_boiler_cost'] = (data['Desired Power'] / 1000) * (data['Time_Diff_Hours']) * gas_price_Mwh
@@ -202,7 +206,6 @@ def calculate_savings_imbalance(data, gas_price):
     percentage_savings = (total_savings / only_gas_boiler_cost * 100) if only_gas_boiler_cost else 0
 
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, only_gas_boiler_cost, data
-
 
 
 # this functions calculates per data which market is more profitable
