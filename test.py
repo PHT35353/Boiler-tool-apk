@@ -424,7 +424,7 @@ def main():
             try:
                 uploaded_data = pd.read_excel(uploaded_file)
                 if 'Start time' in uploaded_data.columns and 'thermal load (kW)' in uploaded_data.columns:
-                    uploaded_data['Start time'] = pd.to_datetime(uploaded_data['Start time'], format='%d-%b-%y %H:%M:%S', errors='coerce')
+                    uploaded_data['Start time'] = pd.to_datetime(uploaded_data['Start time'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
                     uploaded_data.rename(columns={'thermal load (kW)': 'Desired Power'}, inplace=True)
                     uploaded_data = uploaded_data[['Start time', 'Desired Power']]
 
@@ -526,5 +526,6 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 
