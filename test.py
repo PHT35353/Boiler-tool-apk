@@ -493,12 +493,12 @@ def main():
         total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
         total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
 
-        # Drop the 'Time_Diff_Minutes' column and pricing columns before displaying
+        # Ensure columns are dropped from both datasets before display
         day_ahead_display_data = day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
-        imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes', 'E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
+        imbalance_display_data = imbalance_data.drop(columns=['Time_Diff_Minutes', 'E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
 
         # Calculate the profit and determine the most profitable market
-        day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_data_display)
+        day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_display_data)
 
         # Calculate the total profit from each market
         total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
