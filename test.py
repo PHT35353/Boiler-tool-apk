@@ -400,6 +400,25 @@ def plot_power(day_ahead_data, imbalance_data):
     return day_ahead_fig, imbalance_fig
 
 
+def align_data_with_day_ahead(day_ahead_data, imbalance_data):
+    # Convert to datetime and set index for both dataframes
+    day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
+    imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
+
+    day_ahead_data.set_index('Time', inplace=True)
+    imbalance_data.set_index('Time', inplace=True)
+
+    # Reindex imbalance data to match day-ahead data's time index
+    imbalance_data = imbalance_data.reindex(day_ahead_data.index)
+
+    # Forward fill and backward fill any missing data in imbalance
+    imbalance_data = imbalance_data.fillna(method='ffill').fillna(method='bfill')
+
+    # Reset index to make 'Time' a column again
+    day_ahead_data.reset_index(inplace=True)
+    imbalance_data.reset_index(inplace=True)
+
+    return day_ahead_data, imbalance_data
 
 def main():
     # Sidebar settings
@@ -408,7 +427,7 @@ def main():
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
     country_code = st.sidebar.text_input('Country code', 'NL')
     gas_price = st.sidebar.number_input('Gas price EUR/kWh', value=0.30 / 9.796)
-    desired_power = st.sidebar.number_input('Desired Power (kW)', min_value=0.0, value=100.0, step=1.0)
+    desired_power = st.sidebar.number_input('Desired Power (kWh)', min_value=0.0, value=100.0, step=1.0)
     uploaded_file = st.sidebar.file_uploader("Upload your desired power data (Excel file)", type=["xlsx", "xls"])
 
     if st.sidebar.button('Get Data'):
@@ -465,6 +484,9 @@ def main():
             # If no file uploaded, use the desired power input
             day_ahead_data['Desired Power'] = desired_power
             imbalance_data['Desired Power'] = desired_power
+
+        # Align imbalance data with day-ahead data
+        day_ahead_data, imbalance_data = align_data_with_day_ahead(day_ahead_data, imbalance_data)
 
         # Calculate costs and power usage
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
@@ -536,7 +558,8 @@ def main():
             st.plotly_chart(fig_day_ahead_price)
             st.plotly_chart(fig_imbalance_price)
         else:
-            st.error("Error generating price comparison charts.")
+            st.error
+
 
         # Show the power plots
         fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
