@@ -493,12 +493,8 @@ def main():
         total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
         total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
 
-        # Ensure columns are dropped from both datasets before display
-        day_ahead_display_data = day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
-        imbalance_display_data = imbalance_data.drop(columns=['Time_Diff_Minutes', 'E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
-
         # Calculate the profit and determine the most profitable market
-        day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_display_data)
+        day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_data)
 
         # Calculate the total profit from each market
         total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
@@ -530,7 +526,7 @@ def main():
             col6.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_day_ahead:,.2f} EUR")
 
         st.write('### Day-Ahead Data Table:')
-        st.dataframe(day_ahead_display_data)
+        st.dataframe(day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore'))
 
         st.write('### Day-Ahead Market Price Comparison:')
         fig_day_ahead_price, _ = plot_price(day_ahead_data, imbalance_data_display, gas_price)
@@ -552,7 +548,7 @@ def main():
             col12.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_imbalance:,.2f} EUR")
 
         st.write('### Imbalance Data Table:')
-        st.dataframe(imbalance_display_data)
+        st.dataframe(imbalance_data_display.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore'))
 
         st.write('### Imbalance Market Price Comparison:')
         _, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
