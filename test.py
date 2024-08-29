@@ -529,7 +529,7 @@ def main():
             col6.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_day_ahead:,.2f} EUR")
 
         # Drop the pricing columns from Day-Ahead data before displaying
-        day_ahead_display_data = day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'])
+        day_ahead_display_data = day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
         st.write('### Day-Ahead Data Table:')
         st.dataframe(day_ahead_display_data)
 
@@ -553,7 +553,7 @@ def main():
             col12.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_imbalance:,.2f} EUR")
 
         # Drop the pricing columns from Imbalance data before displaying
-        imbalance_display_data = imbalance_data_display.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'])
+        imbalance_display_data = imbalance_data_display.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_display_data)
 
@@ -572,7 +572,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-            
