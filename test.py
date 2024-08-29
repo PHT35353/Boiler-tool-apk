@@ -33,6 +33,7 @@ st.markdown("""
 
 **Note:**
 - Longer date ranges may increase processing time
+- Please ensure your Excel file's time columns are labeled as 'Start time' and 'End time', and the power column is labeled as 'Thermal load (kW)' before uploading
 
 **Settings:**
 - Adjust theme or enable wide mode via the settings (three dots at the top right)
