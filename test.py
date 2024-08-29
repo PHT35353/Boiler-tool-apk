@@ -505,12 +505,12 @@ def main():
 
         # Calculate the profit percentage for each market
         if gas_boiler_cost_day_ahead and total_profit_day_ahead != 0:
-            profit_percentage_day_ahead = (total_cost_day_ahead / gas_boiler_cost_day_ahead) * 100
+            profit_percentage_day_ahead = (abs(e_boiler_cost_day_ahead) / gas_boiler_cost_day_ahead) * 100
         else:
             profit_percentage_day_ahead = 0
 
         if gas_boiler_cost_imbalance and total_profit_imbalance != 0:
-            profit_percentage_imbalance = (total_cost_imbalance / gas_boiler_cost_imbalance) * 100
+            profit_percentage_imbalance = (abs(e_boiler_cost_imbalance) / gas_boiler_cost_imbalance) * 100
         else:
             profit_percentage_imbalance = 0
 
