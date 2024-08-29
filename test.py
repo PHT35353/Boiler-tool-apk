@@ -199,10 +199,11 @@ def calculate_savings_imbalance(data, gas_price):
 
     # Identify the difference and adjust the last entry
     gas_boiler_cost_diff = only_gas_boiler_cost - gas_boiler_cost
+    last_only_gas_boiler_cost = data['only_gas_boiler_cost'].iloc[-1]
+
     if gas_boiler_cost_diff != 0:
-        # Add the difference to the last entry and multiply by 4
-        data.at[data.index[-1], 'only_gas_boiler_cost'] += gas_boiler_cost_diff * 4
-        gas_boiler_cost += gas_boiler_cost_diff * 4
+        adjustment = (gas_boiler_cost_diff - last_only_gas_boiler_cost) * 4
+        data.at[data.index[-1], 'only_gas_boiler_cost'] += adjustment
 
     # Calculate total savings and percentage savings
     total_mixed_cost = e_boiler_cost + gas_boiler_cost
@@ -210,6 +211,7 @@ def calculate_savings_imbalance(data, gas_price):
     percentage_savings = (total_savings / only_gas_boiler_cost * 100) if only_gas_boiler_cost else 0
 
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, only_gas_boiler_cost, data
+
 
 
 
