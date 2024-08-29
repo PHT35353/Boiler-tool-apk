@@ -508,12 +508,12 @@ def main():
 
         # Calculate the profit percentage for each market
         if gas_boiler_cost_day_ahead and total_profit_day_ahead != 0:
-            profit_percentage_day_ahead = (abs(e_boiler_cost_day_ahead) / gas_boiler_cost_day_ahead) * 100
+            profit_percentage_day_ahead = (total_cost_day_ahead / gas_boiler_cost_day_ahead) * 100
         else:
             profit_percentage_day_ahead = 0
 
         if gas_boiler_cost_imbalance and total_profit_imbalance != 0:
-            profit_percentage_imbalance = (abs(e_boiler_cost_imbalance) / gas_boiler_cost_imbalance ) * 100
+            profit_percentage_imbalance = (total_cost_imbalance / gas_boiler_cost_imbalance) * 100
         else:
             profit_percentage_imbalance = 0
 
@@ -527,8 +527,11 @@ def main():
             col4.write(f"**E-boiler Cost:**\n{e_boiler_cost_day_ahead:,.2f} EUR")
             col5.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_day_ahead:,.2f} EUR")
             col6.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_day_ahead:,.2f} EUR")
+
+        # Drop the pricing columns from Day-Ahead data before displaying
+        day_ahead_display_data = day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'])
         st.write('### Day-Ahead Data Table:')
-        st.dataframe(day_ahead_data)
+        st.dataframe(day_ahead_display_data)
 
         st.write('### Day-Ahead Market Price Comparison:')
         fig_day_ahead_price, _ = plot_price(day_ahead_data, imbalance_data_display, gas_price)
@@ -548,8 +551,11 @@ def main():
             col10.write(f"**E-boiler Cost:**\n{e_boiler_cost_imbalance:,.2f} EUR")
             col11.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
             col12.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_imbalance:,.2f} EUR")
+
+        # Drop the pricing columns from Imbalance data before displaying
+        imbalance_display_data = imbalance_data_display.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'])
         st.write('### Imbalance Data Table:')
-        st.dataframe(imbalance_data_display)
+        st.dataframe(imbalance_display_data)
 
         st.write('### Imbalance Market Price Comparison:')
         _, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
