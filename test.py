@@ -517,15 +517,16 @@ def main():
         else:
             profit_percentage_imbalance = 0
 
-        # Display the Day-Ahead results and graphs sequentially
-        st.write('## Day-Ahead Market Results')
+        # Display the Day-Ahead results
         st.write('### Day-Ahead Data Results:')
-        st.write(f"**Total Savings:** {total_savings_day_ahead:,.2f} EUR")
-        st.write(f"**Percentage Savings:** {percentage_savings_day_ahead:.2f}%")
-        st.write(f"**Total Cost (both E-boiler and gas-boiler used):** {total_cost_day_ahead:,.2f} EUR")
-        st.write(f"**E-boiler Cost:** {e_boiler_cost_day_ahead:,.2f} EUR")
-        st.write(f"**Gas-boiler Cost (when the efficient choice):** {gas_boiler_cost_day_ahead:,.2f} EUR")
-        st.write(f"**Gas-boiler Cost (when only used):** {only_gas_boiler_cost_day_ahead:,.2f} EUR")
+        with st.container():
+            col1, col2, col3, col4, col5, col6 = st.columns([10, 10, 10, 10, 10, 10])
+            col1.write(f"**Total Savings:**\n{total_savings_day_ahead:,.2f} EUR")
+            col2.write(f"**Percentage Savings:**\n{percentage_savings_day_ahead:.2f}%")
+            col3.write(f"**Total Cost (both E-boiler and gas-boiler used):**\n{total_cost_day_ahead:,.2f} EUR")
+            col4.write(f"**E-boiler Cost:**\n{e_boiler_cost_day_ahead:,.2f} EUR")
+            col5.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_day_ahead:,.2f} EUR")
+            col6.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_day_ahead:,.2f} EUR")
         st.write('### Day-Ahead Data Table:')
         st.dataframe(day_ahead_data)
 
@@ -537,15 +538,16 @@ def main():
         fig_day_ahead_power, _ = plot_power(day_ahead_data, imbalance_data_display)
         st.plotly_chart(fig_day_ahead_power)
 
-        # Display the Imbalance results and graphs sequentially
-        st.write('## Imbalance Market Results')
+        # Display the Imbalance results
         st.write('### Imbalance Data Results:')
-        st.write(f"**Total Savings:** {total_savings_imbalance:,.2f} EUR")
-        st.write(f"**Percentage Savings:** {percentage_savings_imbalance:.2f}%")
-        st.write(f"**Total Cost (both E-boiler and gas-boiler used):** {total_cost_imbalance:,.2f} EUR")
-        st.write(f"**E-boiler Cost:** {e_boiler_cost_imbalance:,.2f} EUR")
-        st.write(f"**Gas-boiler Cost (when the efficient choice):** {gas_boiler_cost_imbalance:,.2f} EUR")
-        st.write(f"**Gas-boiler Cost (when only used):** {only_gas_boiler_cost_imbalance:,.2f} EUR")
+        with st.container():
+            col7, col8, col9, col10, col11, col12 = st.columns([10, 10, 10, 10, 10, 10])
+            col7.write(f"**Total Savings:**\n{total_savings_imbalance:,.2f} EUR")
+            col8.write(f"**Percentage Savings:**\n{percentage_savings_imbalance:.2f}%")
+            col9.write(f"**Total Cost (both E-boiler and gas-boiler used):**\n{total_cost_imbalance:,.2f} EUR")
+            col10.write(f"**E-boiler Cost:**\n{e_boiler_cost_imbalance:,.2f} EUR")
+            col11.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
+            col12.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_imbalance:,.2f} EUR")
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
@@ -556,13 +558,15 @@ def main():
         st.write('### Imbalance Market Power Usage:')
         _, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
         st.plotly_chart(fig_imbalance_power)
-                # Display total profits, profit percentages, and the most profitable market
+
+        # Display total profits, profit percentages, and the most profitable market
         st.write(f"### Most Profitable Market Overall: {most_profitable_market}")
         st.write(f"Total Profit - Day-Ahead: {total_profit_day_ahead:,.2f} EUR ({profit_percentage_day_ahead:.2f}%)")
         st.write(f"Total Profit - Imbalance: {total_profit_imbalance:,.2f} EUR ({profit_percentage_imbalance:.2f}%)")
 
 if __name__ == '__main__':
     main()
+
 
 
             
