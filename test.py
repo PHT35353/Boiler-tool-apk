@@ -516,11 +516,7 @@ def main():
         else:
             profit_percentage_imbalance = 0
 
-        # Display total profits, profit percentages, and the most profitable market
-        st.write(f"### Most Profitable Market Overall: {most_profitable_market}")
-        st.write(f"Total Profit - Day-Ahead: {total_profit_day_ahead:,.2f} EUR ({profit_percentage_day_ahead:.2f}%)")
-        st.write(f"Total Profit - Imbalance: {total_profit_imbalance:,.2f} EUR ({profit_percentage_imbalance:.2f}%)")
-
+       
         # Display the original results for day-ahead data in a more organized way
         st.write('### Day-Ahead Data Results:')
         with st.container():
@@ -551,10 +547,11 @@ def main():
         st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
         st.dataframe(combined_data)
 
-        # Display total profits and most profitable market
+         # Display total profits, profit percentages, and the most profitable market
         st.write(f"### Most Profitable Market Overall: {most_profitable_market}")
-        st.write(f"Total Profit - Day-Ahead: {total_profit_day_ahead:,.2f} EUR")
-        st.write(f"Total Profit - Imbalance: {total_profit_imbalance:,.2f} EUR")
+        st.write(f"Total Profit - Day-Ahead: {total_profit_day_ahead:,.2f} EUR ({profit_percentage_day_ahead:.2f}%)")
+        st.write(f"Total Profit - Imbalance: {total_profit_imbalance:,.2f} EUR ({profit_percentage_imbalance:.2f}%)")
+
 
         # Plot the price graphs
         fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
