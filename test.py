@@ -501,7 +501,25 @@ def main():
         # Calculate the total profit from each market
         total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
         total_profit_imbalance = imbalance_data_display['Profit_Imbalance'].sum()
+
+        # Determine the most profitable market
         most_profitable_market = 'Day-Ahead' if total_profit_day_ahead < total_profit_imbalance else 'Imbalance'
+
+        # Calculate the profit percentage for each market
+        if gas_boiler_cost_day_ahead != 0:
+            profit_percentage_day_ahead = (total_cost_day_ahead / gas_boiler_cost_day_ahead) * 100
+        else:
+            profit_percentage_day_ahead = 0
+
+        if gas_boiler_cost_imbalance != 0:
+            profit_percentage_imbalance = (total_cost_imbalance / gas_boiler_cost_imbalance) * 100
+        else:
+            profit_percentage_imbalance = 0
+
+        # Display total profits, profit percentages, and the most profitable market
+        st.write(f"### Most Profitable Market Overall: {most_profitable_market}")
+        st.write(f"Total Profit - Day-Ahead: {total_profit_day_ahead:,.2f} EUR ({profit_percentage_day_ahead:.2f}%)")
+        st.write(f"Total Profit - Imbalance: {total_profit_imbalance:,.2f} EUR ({profit_percentage_imbalance:.2f}%)")
 
         # Display the original results for day-ahead data in a more organized way
         st.write('### Day-Ahead Data Results:')
