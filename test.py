@@ -516,60 +516,55 @@ def main():
         else:
             profit_percentage_imbalance = 0
 
-       
-        # Display the original results for day-ahead data in a more organized way
-        st.write('### Day-Ahead Data Results:')
-        with st.container():
-            col1, col2, col3, col4, col5, col6 = st.columns([10, 10, 10, 10, 10, 10])
-            col1.write(f"**Total Savings:**\n{total_savings_day_ahead:,.2f} EUR")
-            col2.write(f"**Percentage Savings:**\n{percentage_savings_day_ahead:.2f}%")
-            col3.write(f"**Total Cost (both E-boiler and gas-boiler used):**\n{total_cost_day_ahead:,.2f} EUR")
-            col4.write(f"**E-boiler Cost:**\n{e_boiler_cost_day_ahead:,.2f} EUR")
-            col5.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_day_ahead:,.2f} EUR")
-            col6.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_day_ahead:,.2f} EUR")
-        st.write('### Day-Ahead Data Table:')
-        st.dataframe(day_ahead_data)
+        # Display the Day-Ahead results and graphs side by side
+        st.write('## Day-Ahead Market Results')
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write('### Day-Ahead Data Results:')
+            st.write(f"**Total Savings:** {total_savings_day_ahead:,.2f} EUR")
+            st.write(f"**Percentage Savings:** {percentage_savings_day_ahead:.2f}%")
+            st.write(f"**Total Cost (both E-boiler and gas-boiler used):** {total_cost_day_ahead:,.2f} EUR")
+            st.write(f"**E-boiler Cost:** {e_boiler_cost_day_ahead:,.2f} EUR")
+            st.write(f"**Gas-boiler Cost (when the efficient choice):** {gas_boiler_cost_day_ahead:,.2f} EUR")
+            st.write(f"**Gas-boiler Cost (when only used):** {only_gas_boiler_cost_day_ahead:,.2f} EUR")
+            st.write('### Day-Ahead Data Table:')
+            st.dataframe(day_ahead_data)
+        with col2:
+            st.write('### Day-Ahead Market Price Comparison:')
+            fig_day_ahead_price, _ = plot_price(day_ahead_data, imbalance_data_display, gas_price)
+            st.plotly_chart(fig_day_ahead_price)
 
-        # Display the original results for imbalance data in a more organized way
-        st.write('### Imbalance Data Results:')
-        with st.container():
-            col7, col8, col9, col10, col11, col12 = st.columns([10, 10, 10, 10, 10, 10])
-            col7.write(f"**Total Savings:**\n{total_savings_imbalance:,.2f} EUR")
-            col8.write(f"**Percentage Savings:**\n{percentage_savings_imbalance:.2f}%")
-            col9.write(f"**Total Cost (both E-boiler and gas-boiler used):**\n{total_cost_imbalance:,.2f} EUR")
-            col10.write(f"**E-boiler Cost:**\n{e_boiler_cost_imbalance:,.2f} EUR")
-            col11.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
-            col12.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_imbalance:,.2f} EUR")
-        st.write('### Imbalance Data Table:')
-        st.dataframe(imbalance_data_display)
+            st.write('### Day-Ahead Market Power Usage:')
+            fig_day_ahead_power, _ = plot_power(day_ahead_data, imbalance_data_display)
+            st.plotly_chart(fig_day_ahead_power)
 
-        # Display comparison of profitability between day-ahead and imbalance
-        st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
-        st.dataframe(combined_data)
+        # Display the Imbalance results and graphs side by side
+        st.write('## Imbalance Market Results')
+        col3, col4 = st.columns(2)
+        with col3:
+            st.write('### Imbalance Data Results:')
+            st.write(f"**Total Savings:** {total_savings_imbalance:,.2f} EUR")
+            st.write(f"**Percentage Savings:** {percentage_savings_imbalance:.2f}%")
+            st.write(f"**Total Cost (both E-boiler and gas-boiler used):** {total_cost_imbalance:,.2f} EUR")
+            st.write(f"**E-boiler Cost:** {e_boiler_cost_imbalance:,.2f} EUR")
+            st.write(f"**Gas-boiler Cost (when the efficient choice):** {gas_boiler_cost_imbalance:,.2f} EUR")
+            st.write(f"**Gas-boiler Cost (when only used):** {only_gas_boiler_cost_imbalance:,.2f} EUR")
+            st.write('### Imbalance Data Table:')
+            st.dataframe(imbalance_data_display)
+        with col4:
+            st.write('### Imbalance Market Price Comparison:')
+            _, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
+            st.plotly_chart(fig_imbalance_price)
+            st.write('### Imbalance Market Power Usage:')
+            _, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
+            st.plotly_chart(fig_imbalance_power)
 
-         # Display total profits, profit percentages, and the most profitable market
+        # Display total profits, profit percentages, and the most profitable market
         st.write(f"### Most Profitable Market Overall: {most_profitable_market}")
         st.write(f"Total Profit - Day-Ahead: {total_profit_day_ahead:,.2f} EUR ({profit_percentage_day_ahead:.2f}%)")
         st.write(f"Total Profit - Imbalance: {total_profit_imbalance:,.2f} EUR ({profit_percentage_imbalance:.2f}%)")
 
-
-        # Plot the price graphs
-        fig_day_ahead_price, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
-        if fig_day_ahead_price is not None and fig_imbalance_price is not None:
-            st.write('### Price Comparison:')
-            st.plotly_chart(fig_day_ahead_price)
-            st.plotly_chart(fig_imbalance_price)
-        else:
-            st.error("Error generating price comparison charts.")
-
-        # Show the power plots
-        fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
-        st.write('### Power Usage:')
-        st.plotly_chart(fig_day_ahead_power)
-        st.plotly_chart(fig_imbalance_power)
-
 if __name__ == '__main__':
     main()
 
-
-
+            
