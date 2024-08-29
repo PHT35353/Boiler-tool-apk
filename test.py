@@ -526,7 +526,7 @@ def main():
             col6.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_day_ahead:,.2f} EUR")
 
         st.write('### Day-Ahead Data Table:')
-        st.dataframe(day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore'))
+        st.dataframe(day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR per_KWh'], errors='ignore'))
 
         st.write('### Day-Ahead Market Price Comparison:')
         fig_day_ahead_price, _ = plot_price(day_ahead_data, imbalance_data_display, gas_price)
@@ -547,8 +547,11 @@ def main():
             col11.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
             col12.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_imbalance:,.2f} EUR")
 
+        # Explicitly drop the columns just before displaying the Imbalance data
+        imbalance_data_display = imbalance_data_display.drop(columns=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], errors='ignore')
+        
         st.write('### Imbalance Data Table:')
-        st.dataframe(imbalance_data_display.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore'))
+        st.dataframe(imbalance_data_display)
 
         st.write('### Imbalance Market Price Comparison:')
         _, fig_imbalance_price = plot_price(day_ahead_data, imbalance_data_display, gas_price)
