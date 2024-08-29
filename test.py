@@ -177,9 +177,6 @@ def calculate_savings_day_ahead(data, gas_price):
 def calculate_savings_imbalance(data, gas_price):
     gas_price_Mwh = gas_price * 1000  # Convert gas price from EUR/kWh to EUR/MWh
 
-    # Ensure 'Desired Power' is numeric and replace NaN values with 0
-    data['Desired Power'] = pd.to_numeric(data['Desired Power'], errors='coerce').fillna(0)
-
     # Calculate gas boiler cost if it was the only option
     data['only_gas_boiler_cost'] = (data['Desired Power'] / 1000) * (data['Time_Diff_Hours']) * gas_price_Mwh
 
@@ -200,12 +197,19 @@ def calculate_savings_imbalance(data, gas_price):
     # Calculate total gas boiler cost if it was the only option
     only_gas_boiler_cost = data['only_gas_boiler_cost'].sum()
 
+    # Add any difference due to missing data to the last interval
+    gas_boiler_cost_diff = only_gas_boiler_cost - gas_boiler_cost
+    if gas_boiler_cost_diff != 0:
+        data.at[data.index[-1], 'gas_boiler_cost_in_euro_per_hour'] += gas_boiler_cost_diff
+        gas_boiler_cost += gas_boiler_cost_diff
+
     # Calculate total savings and percentage savings
     total_mixed_cost = e_boiler_cost + gas_boiler_cost
     total_savings = only_gas_boiler_cost - total_mixed_cost
     percentage_savings = (total_savings / only_gas_boiler_cost * 100) if only_gas_boiler_cost else 0
 
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, only_gas_boiler_cost, data
+
 
 
 # this functions calculates per data which market is more profitable
@@ -400,25 +404,6 @@ def plot_power(day_ahead_data, imbalance_data):
     return day_ahead_fig, imbalance_fig
 
 
-def align_data_with_day_ahead(day_ahead_data, imbalance_data):
-    # Convert to datetime and set index for both dataframes
-    day_ahead_data['Time'] = pd.to_datetime(day_ahead_data['Time'])
-    imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
-
-    day_ahead_data.set_index('Time', inplace=True)
-    imbalance_data.set_index('Time', inplace=True)
-
-    # Reindex imbalance data to match day-ahead data's time index
-    imbalance_data = imbalance_data.reindex(day_ahead_data.index)
-
-    # Forward fill and backward fill any missing data in imbalance
-    imbalance_data = imbalance_data.fillna(method='ffill').fillna(method='bfill')
-
-    # Reset index to make 'Time' a column again
-    day_ahead_data.reset_index(inplace=True)
-    imbalance_data.reset_index(inplace=True)
-
-    return day_ahead_data, imbalance_data
 
 def main():
     # Sidebar settings
@@ -558,8 +543,7 @@ def main():
             st.plotly_chart(fig_day_ahead_price)
             st.plotly_chart(fig_imbalance_price)
         else:
-            st.error
-
+            st.error("Error generating price comparison charts.")
 
         # Show the power plots
         fig_day_ahead_power, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
