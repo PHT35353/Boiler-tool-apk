@@ -493,8 +493,9 @@ def main():
         total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
         total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
 
-        # Drop the 'Time_Diff_Minutes' column before displaying
-        imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes'])
+        # Drop the 'Time_Diff_Minutes' column and pricing columns before displaying
+        day_ahead_display_data = day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
+        imbalance_data_display = imbalance_data.drop(columns=['Time_Diff_Minutes', 'E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
 
         # Calculate the profit and determine the most profitable market
         day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_data_display)
@@ -528,8 +529,6 @@ def main():
             col5.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_day_ahead:,.2f} EUR")
             col6.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_day_ahead:,.2f} EUR")
 
-        # Drop the pricing columns from Day-Ahead data before displaying
-        day_ahead_display_data = day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
         st.write('### Day-Ahead Data Table:')
         st.dataframe(day_ahead_display_data)
 
@@ -552,8 +551,6 @@ def main():
             col11.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
             col12.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_imbalance:,.2f} EUR")
 
-        # Drop the pricing columns from Imbalance data before displaying
-        imbalance_display_data = imbalance_data_display.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore')
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_display_data)
 
