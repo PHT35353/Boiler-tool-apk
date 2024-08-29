@@ -200,12 +200,21 @@ def calculate_savings_imbalance(data, gas_price):
     # Calculate total gas boiler cost if it was the only option
     only_gas_boiler_cost = data['only_gas_boiler_cost'].sum()
 
+    # Adjust only_gas_boiler_cost by adding the missing hour's cost
+    if 'Time_Diff_Hours' in data.columns:
+        last_gas_boiler_cost = data['only_gas_boiler_cost'].iloc[-1]
+        # Assuming 15 minutes time difference, hence multiplying by 4 to account for the missing hour
+        adjusted_gas_boiler_cost = only_gas_boiler_cost + (last_gas_boiler_cost * 4)
+    else:
+        adjusted_gas_boiler_cost = only_gas_boiler_cost
+
     # Calculate total savings and percentage savings
     total_mixed_cost = e_boiler_cost + gas_boiler_cost
-    total_savings = only_gas_boiler_cost - total_mixed_cost
-    percentage_savings = (total_savings / only_gas_boiler_cost * 100) if only_gas_boiler_cost else 0
+    total_savings = adjusted_gas_boiler_cost - total_mixed_cost
+    percentage_savings = (total_savings / adjusted_gas_boiler_cost * 100) if adjusted_gas_boiler_cost else 0
 
-    return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, only_gas_boiler_cost, data
+    return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, adjusted_gas_boiler_cost, data
+
 
 
 # this functions calculates per data which market is more profitable
