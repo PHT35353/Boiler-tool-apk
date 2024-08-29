@@ -208,11 +208,6 @@ def calculate_savings_imbalance(data, gas_price):
     return total_savings, percentage_savings, e_boiler_cost, gas_boiler_cost, only_gas_boiler_cost, data
 
 
-def resample_to_hourly(data):
-    # Resample the data to hourly intervals by averaging the 15-minute intervals
-    data = data.set_index('Time').resample('H').mean().reset_index()
-    return data
-
 # this functions calculates per data which market is more profitable
 def calculate_market_profits(day_ahead_data, imbalance_data):
    # makes sure the time column exists
@@ -413,7 +408,7 @@ def main():
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
     country_code = st.sidebar.text_input('Country code', 'NL')
     gas_price = st.sidebar.number_input('Gas price EUR/kWh', value=0.30 / 9.796)
-    desired_power = st.sidebar.number_input('Desired Power (kWh)', min_value=0.0, value=100.0, step=1.0)
+    desired_power = st.sidebar.number_input('Desired Power (kW)', min_value=0.0, value=100.0, step=1.0)
     uploaded_file = st.sidebar.file_uploader("Upload your desired power data (Excel file)", type=["xlsx", "xls"])
 
     if st.sidebar.button('Get Data'):
@@ -470,9 +465,6 @@ def main():
             # If no file uploaded, use the desired power input
             day_ahead_data['Desired Power'] = desired_power
             imbalance_data['Desired Power'] = desired_power
-
-        # Resample imbalance data to hourly intervals
-        imbalance_data = resample_to_hourly(imbalance_data)
 
         # Calculate costs and power usage
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
