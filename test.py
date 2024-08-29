@@ -144,30 +144,30 @@ def calculate_time_diff_hours(data):
 def calculate_savings_day_ahead(data, gas_price):
     gas_price_Mwh = gas_price * 1000  # convert gas price from EUR/kWh to EUR/MWh
 
-    # Ensure 'Desired Power' is numeric and replace NaN values with 0
+    # ensures 'Desired Power' is numeric and replace NaN values with 0
     data['Desired Power'] = pd.to_numeric(data['Desired Power'], errors='coerce').fillna(0)
 
-    # Calculate gas boiler cost if it was the only option
+    # calculates gas boiler cost if it was the only option
     data['only_gas_boiler_cost'] = (data['Desired Power'] / 1000) * gas_price_Mwh
 
-    # Calculate the gas boiler cost based on efficiency
+    # calculates the gas boiler cost based on efficiency
     data['gas_boiler_cost_in_euro_per_hour'] = data.apply(
         lambda row: (row['Desired Power'] / 1000) * gas_price_Mwh
         if row['Efficient_Boiler_Day_Ahead'] == 'Gas-boiler' else 0, axis=1
     )
     gas_boiler_cost = data['gas_boiler_cost_in_euro_per_hour'].sum()
 
-    # Calculate the E-boiler cost based on efficiency
+    # calculates the E-boiler cost based on efficiency
     data['e_boiler_cost_in_euro_per_hour'] = data.apply(
         lambda row: (row['Desired Power'] / 1000) * row['Day-Ahead_Price_EUR_per_MWh']
         if row['Efficient_Boiler_Day_Ahead'] == 'E-boiler' else 0, axis=1
     )
     e_boiler_cost = data['e_boiler_cost_in_euro_per_hour'].sum()
 
-    # Calculate total gas boiler cost if it was the only option
+    # calculates total gas boiler cost if it was the only option
     only_gas_boiler_cost = data['only_gas_boiler_cost'].sum()
 
-    # Calculate total savings and percentage savings
+    # calculates total savings and percentage savings
     total_mixed_cost = e_boiler_cost + gas_boiler_cost
     total_savings = only_gas_boiler_cost - total_mixed_cost
     percentage_savings = (total_savings / only_gas_boiler_cost * 100) if only_gas_boiler_cost else 0
@@ -204,7 +204,7 @@ def calculate_savings_imbalance(data, gas_price):
     # adjusts only_gas_boiler_cost by adding the missing hour's cost
     if 'Time_Diff_Hours' in data.columns:
         last_gas_boiler_cost = data['only_gas_boiler_cost'].iloc[-1]
-        # Assuming 15 minutes time difference, hence multiplying by 4 to account for the missing hour
+        # assuming 15 minutes time difference, hence multiplying by 4 to account for the missing hour
         adjusted_gas_boiler_cost = only_gas_boiler_cost + (last_gas_boiler_cost * 4)
     else:
         adjusted_gas_boiler_cost = only_gas_boiler_cost
@@ -438,7 +438,7 @@ def main():
                 if 'Start time' in uploaded_data.columns and 'thermal load (kW)' in uploaded_data.columns:
                     uploaded_data['Start time'] = pd.to_datetime(uploaded_data['Start time'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
 
-                    # convert to the same timezone as the ENTSO-E data
+                    # converts to the same timezone as the ENTSO-E data
                     uploaded_data['Start time'] = uploaded_data['Start time'].dt.tz_localize('Europe/Amsterdam', ambiguous='NaT', nonexistent='NaT')
 
                     # renames and selects necessary columns
