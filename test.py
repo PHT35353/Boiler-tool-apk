@@ -178,7 +178,7 @@ def calculate_savings_day_ahead(data, gas_price):
 def calculate_savings_imbalance(data, gas_price):
     gas_price_Mwh = gas_price * 1000  # converts gas price from EUR/kWh to EUR/MWh
 
-    
+    # ensures 'Desired Power' is numeric and replace NaN values with 0
     data['Desired Power'] = pd.to_numeric(data['Desired Power'], errors='coerce').fillna(0)
 
     # calculates gas boiler cost if it was the only option
@@ -204,7 +204,7 @@ def calculate_savings_imbalance(data, gas_price):
     # adjusts only_gas_boiler_cost by adding the missing hour's cost
     if 'Time_Diff_Hours' in data.columns:
         last_gas_boiler_cost = data['only_gas_boiler_cost'].iloc[-1]
-        # assuming 15 minutes time difference, hence multiplying by 4 to account for the missing hour
+        
         adjusted_gas_boiler_cost = only_gas_boiler_cost + (last_gas_boiler_cost * 4)
     else:
         adjusted_gas_boiler_cost = only_gas_boiler_cost
@@ -218,11 +218,11 @@ def calculate_savings_imbalance(data, gas_price):
 
 
 
-# this functions calculates per data which market is more profitable
+# this function calculates per data which market is more profitable
 def calculate_market_profits(day_ahead_data, imbalance_data):
    # makes sure the time column exists
     if 'Time' not in imbalance_data.columns:
-        st.error("'Time' column is missing in imbalance_data.")
+        st.error("The time column is missing in imbalance_data.")
         return None, None, None
     # ensures the NaN values to be seen as 0
     imbalance_data['Time'] = pd.to_datetime(imbalance_data['Time'])
@@ -275,7 +275,7 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
                 axis=1
             )
         else:
-            st.error("The 'Efficient_Boiler_Day_Ahead' column is missing in the day_ahead_data DataFrame.")
+            st.error("The Efficient_Boiler_Day_Ahead column is missing in the day_ahead_data DataFrame.")
             return None, None
     else:
         st.error("Day-Ahead_Price_EUR_per_MWh column is missing in day_ahead_data.")
@@ -294,7 +294,7 @@ def plot_price(day_ahead_data, imbalance_data, gas_price):
                 axis=1
             )
         else:
-            st.error("The 'Efficient_Boiler_Imbalance' or 'Time_Diff_Hours' column is missing in the imbalance_data DataFrame.")
+            st.error("The Efficient_Boiler_Imbalance or Time_Diff_Hours column is missing in the imbalance_data DataFrame.")
             return None, None
     else:
         st.error("Imbalance_Price_EUR_per_MWh column is missing in imbalance_data.")
@@ -460,7 +460,7 @@ def main():
                     # sets the flag to true indicating we are using uploaded data
                     use_uploaded_data = True
                 else:
-                    st.error("Uploaded file must contain 'Start time' and 'thermal load (kW)' columns")
+                    st.error("Uploaded file must contain Start tim' and thermal load (kW) columns")
                     return
             except Exception as e:
                 st.error(f"Error reading the uploaded file: {str(e)}")
