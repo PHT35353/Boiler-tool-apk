@@ -406,7 +406,7 @@ def plot_power(day_ahead_data, imbalance_data):
 
 # this function connects everything to streamlit
 def main():
-    # sidebar settings
+    # Sidebar settings
     st.sidebar.title('Settings')
     start_date = st.sidebar.date_input('Start date', pd.to_datetime('2023-01-01'))
     end_date = st.sidebar.date_input('End date', pd.to_datetime('2024-01-01'))
@@ -416,11 +416,11 @@ def main():
     uploaded_file = st.sidebar.file_uploader("Upload your desired power data (Excel file)", type=["xlsx", "xls"])
 
     if st.sidebar.button('Get Data'):
-        # gets data
+        # Get data
         day_ahead_data = get_day_ahead_data(start_date, end_date, country_code)
         imbalance_data = get_imbalance_data(start_date, end_date, country_code)
 
-        # checks if data is empty and display an error if necessary
+        # Check if data is empty and display an error if necessary
         if day_ahead_data.empty:
             st.error("No day-ahead data available")
             return
@@ -428,76 +428,76 @@ def main():
             st.error("No imbalance data available")
             return
 
-        # checks if its the default or the uploaded data
+        # Initialize a flag to check if we are using uploaded data or default input
         use_uploaded_data = False
 
-        # process uploaded file if available
+        # Process uploaded file if available
         if uploaded_file is not None:
             try:
                 uploaded_data = pd.read_excel(uploaded_file)
                 if 'Start time' in uploaded_data.columns and 'thermal load (kW)' in uploaded_data.columns:
                     uploaded_data['Start time'] = pd.to_datetime(uploaded_data['Start time'], format='%Y-%m-%d %H:%M:%S', errors='coerce')
 
-                    # converts to the same timezone as the ENTSO-E data
+                    # Convert to the same timezone as the ENTSO-E data
                     uploaded_data['Start time'] = uploaded_data['Start time'].dt.tz_localize('Europe/Amsterdam', ambiguous='NaT', nonexistent='NaT')
 
-                    # renames and selects necessary columns
+                    # Rename and select necessary columns
                     uploaded_data.rename(columns={'thermal load (kW)': 'Desired Power'}, inplace=True)
                     uploaded_data = uploaded_data[['Start time', 'Desired Power']]
 
-                    # ensures day_ahead_data and imbalance_data are in the same timezone
+                    # Ensure day_ahead_data and imbalance_data are in the same timezone
                     day_ahead_data['Time'] = day_ahead_data['Time'].dt.tz_convert('Europe/Amsterdam')
                     imbalance_data['Time'] = imbalance_data['Time'].dt.tz_convert('Europe/Amsterdam')
 
-                    # merges uploaded data with day-ahead and imbalance data
+                    # Merge uploaded data with day-ahead and imbalance data
                     day_ahead_data = pd.merge(day_ahead_data, uploaded_data, left_on='Time', right_on='Start time', how='left').drop(columns=['Start time'])
                     imbalance_data = pd.merge(imbalance_data, uploaded_data, left_on='Time', right_on='Start time', how='left').drop(columns=['Start time'])
 
-                    # fills missing values by forward and backward filling
+                    # Fill missing values by forward and backward filling
                     day_ahead_data['Desired Power'] = day_ahead_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
                     imbalance_data['Desired Power'] = imbalance_data['Desired Power'].fillna(method='ffill').fillna(method='bfill')
 
-                    # sets the flag to true indicating we are using uploaded data
+                    # Set the flag to true indicating we are using uploaded data
                     use_uploaded_data = True
                 else:
-                    st.error("Uploaded file must contain Start tim' and thermal load (kW) columns")
+                    st.error("Uploaded file must contain 'Start time' and 'thermal load (kW)' columns")
                     return
             except Exception as e:
                 st.error(f"Error reading the uploaded file: {str(e)}")
                 return
         else:
-            # if no file uploaded, use the desired power input
+            # If no file uploaded, use the desired power input
             day_ahead_data['Desired Power'] = desired_power
             imbalance_data['Desired Power'] = desired_power
 
-        # calculates costs and power usage
+        # Calculate costs and power usage
         day_ahead_data = day_ahead_costs(day_ahead_data, gas_price)
         imbalance_data = imbalance_costs(imbalance_data, gas_price)
 
         day_ahead_data = day_ahead_power(day_ahead_data)
         imbalance_data = imbalance_power(imbalance_data)
 
-        # calculates time differences for imbalance data
+        # Calculate time differences for imbalance data
         imbalance_data = calculate_time_diff_hours(imbalance_data)
 
-        # calculates savings for both day-ahead and imbalance data
+        # Calculate savings for both day-ahead and imbalance data
         total_savings_day_ahead, percentage_savings_day_ahead, e_boiler_cost_day_ahead, gas_boiler_cost_day_ahead, only_gas_boiler_cost_day_ahead = calculate_savings_day_ahead(day_ahead_data, gas_price)
         total_savings_imbalance, percentage_savings_imbalance, e_boiler_cost_imbalance, gas_boiler_cost_imbalance, only_gas_boiler_cost_imbalance, imbalance_data = calculate_savings_imbalance(imbalance_data, gas_price)
 
         total_cost_day_ahead = (e_boiler_cost_day_ahead) + gas_boiler_cost_day_ahead
         total_cost_imbalance = (e_boiler_cost_imbalance) + gas_boiler_cost_imbalance
 
-        # calculates the profit and determine the most profitable market
+        # Calculate the profit and determine the most profitable market
         day_ahead_data, imbalance_data_display, combined_data = calculate_market_profits(day_ahead_data, imbalance_data)
 
-        # calculates the total profit from each market
+        # Calculate the total profit from each market
         total_profit_day_ahead = day_ahead_data['Profit_Day_Ahead'].sum()
         total_profit_imbalance = imbalance_data_display['Profit_Imbalance'].sum()
 
-        # determines the most profitable market
+        # Determine the most profitable market
         most_profitable_market = 'Day-Ahead' if total_profit_day_ahead < total_profit_imbalance else 'Imbalance'
 
-        # calculates the profit percentage for each market
+        # Calculate the profit percentage for each market
         if gas_boiler_cost_day_ahead and total_profit_day_ahead != 0:
             profit_percentage_day_ahead = (abs(e_boiler_cost_day_ahead) / gas_boiler_cost_day_ahead) * 100
         else:
@@ -508,7 +508,7 @@ def main():
         else:
             profit_percentage_imbalance = 0
 
-        # displays the Day-Ahead results
+        # Display the Day-Ahead results
         st.write('### Day-Ahead Data Results:')
         with st.container():
             col1, col2, col3, col4, col5, col6 = st.columns([10, 10, 10, 10, 10, 10])
@@ -520,7 +520,7 @@ def main():
             col6.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_day_ahead:,.2f} EUR")
 
         st.write('### Day-Ahead Data Table:')
-        st.dataframe(day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR per_KWh'], errors='ignore'))
+        st.dataframe(day_ahead_data.drop(columns=['E-boiler_Price_EUR_per_KWh', 'Gas-boiler_Price_EUR_per_KWh'], errors='ignore'))
 
         st.write('### Day-Ahead Market Price Comparison:')
         fig_day_ahead_price, _ = plot_price(day_ahead_data, imbalance_data_display, gas_price)
@@ -530,7 +530,7 @@ def main():
         fig_day_ahead_power, _ = plot_power(day_ahead_data, imbalance_data_display)
         st.plotly_chart(fig_day_ahead_power)
 
-        # displays the Imbalance results
+        # Display the Imbalance results
         st.write('### Imbalance Data Results:')
         with st.container():
             col7, col8, col9, col10, col11, col12 = st.columns([10, 10, 10, 10, 10, 10])
@@ -541,9 +541,9 @@ def main():
             col11.write(f"**Gas-boiler Cost (when the efficient choice):**\n{gas_boiler_cost_imbalance:,.2f} EUR")
             col12.write(f"**Gas-boiler Cost (when only used):**\n{only_gas_boiler_cost_imbalance:,.2f} EUR")
 
-        # drops the eur/kwh columns
+        # Explicitly drop the columns just before displaying the Imbalance data
         imbalance_data_display = imbalance_data_display.drop(columns=['E_Boiler_Price_EUR_per_KWh', 'Gas_Boiler_Price_EUR_per_KWh'], errors='ignore')
-        
+
         st.write('### Imbalance Data Table:')
         st.dataframe(imbalance_data_display)
 
@@ -555,7 +555,11 @@ def main():
         _, fig_imbalance_power = plot_power(day_ahead_data, imbalance_data_display)
         st.plotly_chart(fig_imbalance_power)
 
-        # displays total profits, profit percentages, and the most profitable market
+        # Display the comparison of profitability between Day-Ahead and Imbalance markets
+        st.write('### Comparison of Profitability between Day-Ahead and Imbalance Markets:')
+        st.dataframe(combined_data)
+
+        # Display total profits, profit percentages, and the most profitable market
         st.write(f"### Most Profitable Market Overall: {most_profitable_market}")
         st.write(f"Total Profit - Day-Ahead: {total_profit_day_ahead:,.2f} EUR ({profit_percentage_day_ahead:.2f}%)")
         st.write(f"Total Profit - Imbalance: {total_profit_imbalance:,.2f} EUR ({profit_percentage_imbalance:.2f}%)")
